@@ -6,6 +6,11 @@ const YOUTUBE_API_KEYS =
     .map((key) => key.trim())
     .filter(Boolean) || []
 
+const YOUTUBE_API_KEYS2 =
+  process.env.YOUTUBE_API_KEYS2?.split(",")
+    .map((key) => key.trim())
+    .filter(Boolean) || []
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const query = searchParams.get("q")
@@ -20,7 +25,7 @@ export async function GET(request: NextRequest) {
 
   let lastError: any = null
 
-  // Try each API key until one succeeds
+  // Try each API key in YOUTUBE_API_KEYS
   for (const apiKey of YOUTUBE_API_KEYS) {
     try {
       const response = await fetch(
@@ -68,6 +73,49 @@ export async function GET(request: NextRequest) {
     } catch (error) {
       console.error(`Error with YouTube API key ${apiKey}:`, error)
       lastError = error // Store error to return if all keys fail
+    }
+  }
+
+  // If all keys in YOUTUBE_API_KEYS failed, try YOUTUBE_API_KEYS2
+  for (const apiKey of YOUTUBE_API_KEYS2) {
+    try {
+      const response = await fetch(
+        `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&q=${encodeURIComponent(query)}&key=${apiKey}&maxResults=10`,
+      )
+      if (!response.ok) {
+        const errorData = await response.json()
+        console.warn(`YouTube API request failed with key2 ${apiKey}:`, errorData)
+        lastError = errorData
+        continue
+      }
+      const data = await response.json()
+      // Get video details including duration
+      const videoIds = data.items.map((item: any) => item.id.videoId).join(",")
+      const detailsResponse = await fetch(
+        `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoIds}&key=${apiKey}`,
+      )
+      if (!detailsResponse.ok) {
+        const detailsErrorData = await detailsResponse.json()
+        console.warn(`YouTube video details API request failed with key2 ${apiKey}:`, detailsErrorData)
+        lastError = detailsErrorData
+        continue
+      }
+      const detailsData = await detailsResponse.json()
+      const videos = data.items.map((item: any, index: number) => {
+        const details = detailsData.items[index]
+        const duration = details ? formatDuration(details.contentDetails.duration) : "Unknown"
+        return {
+          id: item.id.videoId,
+          title: item.snippet.title,
+          thumbnail: item.snippet.thumbnails.medium.url,
+          duration,
+          channelTitle: item.snippet.channelTitle,
+        }
+      })
+      return NextResponse.json({ videos })
+    } catch (error) {
+      console.error(`Error with YouTube API key2 ${apiKey}:`, error)
+      lastError = error
     }
   }
 
