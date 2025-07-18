@@ -30,7 +30,7 @@ Get your YouTube API key from:
 
 **Option A: Automatic Setup**
 \`\`\`bash
-npm install
+npm install --legacy-peer-deps
 npm run setup
 \`\`\`
 
