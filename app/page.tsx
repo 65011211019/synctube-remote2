@@ -327,7 +327,18 @@ export default function HomePage() {
       }
 
       if (room.password_hash) {
-        const isValidPassword = await verifyPassword(passwordToJoin, room.password_hash)
+        if (!passwordToJoin || typeof passwordToJoin !== "string") {
+          toast({
+            title: "Error",
+            description: "Password is required",
+            variant: "destructive",
+          })
+          return
+        }
+        const isValidPassword = await verifyPassword(
+          typeof passwordToJoin === "string" ? passwordToJoin : "",
+          typeof room.password_hash === "string" ? room.password_hash : ""
+        )
         if (!isValidPassword) {
           toast({
             title: "Error",
@@ -381,26 +392,60 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-2 sm:p-4">
+    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-blue-50 to-pink-100 p-2 sm:p-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-6 sm:mb-8 px-2">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-2 flex items-center justify-center gap-2 flex-wrap">
-            <Music className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600" />
+        <div className="text-center mb-8 px-2">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 mb-3 flex items-center justify-center gap-2 flex-wrap drop-shadow-lg">
+            <Music className="h-8 w-8 sm:h-10 sm:w-10 text-purple-600" />
             <span>SyncTube Remote</span>
           </h1>
-          <p className="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto">
-            Share and sync YouTube music with friends in real-time
+          <p className="text-base sm:text-lg text-gray-700 max-w-2xl mx-auto font-medium">
+            Share and listen to YouTube music with friends in real-time. Create private rooms, manage queues, vote to skip, and more.
           </p>
         </div>
 
+        {/* Feature Highlights */}
+        <div className="max-w-4xl mx-auto mb-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="flex items-start gap-3 bg-white/90 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-shadow border border-purple-100">
+              <Music className="h-7 w-7 text-purple-600 mt-1" />
+              <div>
+                <div className="font-bold text-lg text-gray-900 mb-1">Listen Together in Real-Time</div>
+                <div className="text-sm text-gray-600">Create a room, share a link or QR code, and enjoy YouTube music with friends anywhere.</div>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 bg-white/90 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-shadow border border-purple-100">
+              <Users className="h-7 w-7 text-purple-600 mt-1" />
+              <div>
+                <div className="font-bold text-lg text-gray-900 mb-1">Queue Management & Skip Voting</div>
+                <div className="text-sm text-gray-600">Add, remove, and reorder songs in the queue. Vote to skip songs you don't want to hear.</div>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 bg-white/90 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-shadow border border-purple-100">
+              <Lock className="h-7 w-7 text-purple-600 mt-1" />
+              <div>
+                <div className="font-bold text-lg text-gray-900 mb-1">Private Rooms</div>
+                <div className="text-sm text-gray-600">Set a room password to keep your session private and secure.</div>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 bg-white/90 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-shadow border border-purple-100">
+              <Clock className="h-7 w-7 text-purple-600 mt-1" />
+              <div>
+                <div className="font-bold text-lg text-gray-900 mb-1">Auto-Expiring Rooms</div>
+                <div className="text-sm text-gray-600">Rooms are automatically deleted after expiration for privacy and resource efficiency.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 sm:mb-8 justify-center px-2">
+        <div className="flex flex-col sm:flex-row gap-4 mb-10 justify-center px-2">
           <Dialog open={createRoomOpen} onOpenChange={setCreateRoomOpen}>
             <DialogTrigger asChild>
-              <Button size="lg" className="bg-purple-600 hover:bg-purple-700 w-full sm:w-auto">
-                <Plus className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                Create New Room
+              <Button size="lg" className="bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold shadow-lg w-full sm:w-auto transition-all">
+                <Plus className="h-5 w-5 mr-2" />
+                Create Room
               </Button>
             </DialogTrigger>
             <DialogContent className="w-[95vw] max-w-md mx-auto">
@@ -470,8 +515,8 @@ export default function HomePage() {
 
           <Dialog open={joinRoomOpen} onOpenChange={setJoinRoomOpen}>
             <DialogTrigger asChild>
-              <Button size="lg" variant="outline" className="w-full sm:w-auto bg-transparent">
-                <LogIn className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+              <Button size="lg" variant="outline" className="w-full sm:w-auto bg-white border-2 border-purple-200 hover:border-purple-400 text-purple-700 font-bold shadow-sm transition-all">
+                <LogIn className="h-5 w-5 mr-2" />
                 Join Room
               </Button>
             </DialogTrigger>
