@@ -83,6 +83,7 @@ export default function RoomPage() {
   const [shareQrCode, setShareQrCode] = useState("")
   const [generatingQr, setGeneratingQr] = useState(false)
   const [currentVideo, setCurrentVideo] = useState<QueueItem | null>(null)
+  const [expired, setExpired] = useState(false);
 
   // YouTube Player
   const playerRef = useRef<any>(null)
@@ -173,9 +174,9 @@ export default function RoomPage() {
 
   // Auto-fill queue if empty or no new song for 2+ minutes (host only)
   useEffect(() => {
-    if (!isHost || !roomId) return;
+    if (!isHost || !roomId || expired) return;
     const interval = setInterval(async () => {
-      if (!isHostRef.current) return;
+      if (!isHostRef.current || expired) return;
       const q = queueRef.current;
       if (q.length >= 3) return; // จำกัด queue auto-fill สูงสุด 3 เพลง
       let shouldAdd = false;
@@ -218,7 +219,7 @@ export default function RoomPage() {
       }
     }, 20000); // เช็คทุก 20 วินาที
     return () => clearInterval(interval);
-  }, [isHost, roomId]);
+  }, [isHost, roomId, expired]);
 
   const loadRoomData = async () => {
     try {
@@ -263,6 +264,13 @@ export default function RoomPage() {
         })
         router.push("/")
         return
+      }
+
+      // เช็คหมดอายุ
+      if (new Date(String(roomData.expires_at)) < new Date()) {
+        setExpired(true);
+        setLoading(false);
+        return;
       }
 
       setRoom(roomData as unknown as Room)
@@ -1155,6 +1163,18 @@ export default function RoomPage() {
         </div>
       </div>
     )
+  }
+
+  if (expired) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="max-w-md w-full p-6 bg-white rounded-lg shadow text-center">
+          <h2 className="text-xl font-bold mb-2">Room has expired</h2>
+          <p className="mb-4">Your session has ended. Please return to the homepage.</p>
+          <Button onClick={() => router.push("/")}>Back to Home</Button>
+        </div>
+      </div>
+    );
   }
 
   if (!room) {
