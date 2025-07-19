@@ -287,6 +287,20 @@ export default function RoomPage() {
         console.warn("Queue loading error:", queueError)
       } else if (queueData) {
         setQueue(queueData as unknown as QueueItem[])
+        // ถ้ามีเพลงในคิว, ยังไม่มี current_video, และ user เป็น host ให้เล่นเพลงแรกเลย
+        if (
+          (queueData as unknown as QueueItem[]).length > 0 &&
+          !(roomData as unknown as Room).current_video &&
+          (roomData as unknown as Room).host_user_id === userId
+        ) {
+          const first = (queueData as unknown as QueueItem[])[0];
+          await updateRoomState({
+            current_video: first.youtube_id,
+            current_order: first.order_index,
+            is_playing: true,
+            current_position: 0,
+          });
+        }
       }
 
       // Load votes
@@ -834,6 +848,8 @@ export default function RoomPage() {
               description: "All remaining songs are duplicates of the last played. Clearing playback.",
               variant: "destructive",
             })
+            setPlayerReady(false);
+            setPlayerError("Queue is stuck on the same song.");
             await updateRoomState(updates)
             return // Exit early
           }
@@ -846,6 +862,7 @@ export default function RoomPage() {
         if (nextSong) {
           updates.current_video = nextSong.youtube_id
           updates.current_order = nextSong.order_index
+          updates.current_position = 0; // เริ่มต้นที่วินาทีแรกเสมอ
         }
       } else {
         // No songs left in queue
