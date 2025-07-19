@@ -30,7 +30,7 @@ import {
 } from "lucide-react"
 import { createClient } from "@/lib/supabase"
 import { getUserId } from "@/lib/user"
-import { searchYouTube, type YouTubeVideo } from "@/lib/youtube"
+import { searchYouTube, type YouTubeVideo, getRandomYouTubeVideo } from "@/lib/youtube"
 import { toast } from "@/hooks/use-toast"
 import { generateQRCode } from "@/lib/qr"
 
@@ -170,6 +170,55 @@ export default function RoomPage() {
     const current = queue.find((item) => item.order_index === room.current_order)
     setCurrentVideo(current || null)
   }, [room, playerReady, queue])
+
+  // Auto-fill queue if empty or no new song for 2+ minutes (host only)
+  useEffect(() => {
+    if (!isHost || !roomId) return;
+    const interval = setInterval(async () => {
+      if (!isHostRef.current) return;
+      const q = queueRef.current;
+      if (q.length >= 3) return; // จำกัด queue auto-fill สูงสุด 3 เพลง
+      let shouldAdd = false;
+      if (q.length === 0) {
+        shouldAdd = true;
+      } else {
+        // เช็คเพลงล่าสุดในคิว
+        const lastSong = q[q.length - 1];
+        // ถ้าไม่มี created_at ให้ข้าม
+        if (!('created_at' in lastSong)) return;
+        const lastAdded = new Date((lastSong as any).created_at).getTime();
+        if (Date.now() - lastAdded > 1 * 60 * 1000) {
+          shouldAdd = true;
+        }
+      }
+      if (shouldAdd) {
+        // ห้ามซ้ำเพลงเดิมในคิว
+        const existingIds = new Set(q.map(item => item.youtube_id));
+        let randomVideo = null;
+        let tries = 0;
+        while (tries < 5) {
+          const candidate = await getRandomYouTubeVideo();
+          if (candidate && !existingIds.has(candidate.id)) {
+            randomVideo = candidate;
+            break;
+          }
+          tries++;
+        }
+        if (randomVideo) {
+          await supabase.from("queue").insert({
+            room_id: roomId,
+            youtube_id: randomVideo.id,
+            title: randomVideo.title,
+            thumbnail: randomVideo.thumbnail,
+            duration: randomVideo.duration,
+            added_by: "auto",
+            order_index: q.length,
+          });
+        }
+      }
+    }, 20000); // เช็คทุก 20 วินาที
+    return () => clearInterval(interval);
+  }, [isHost, roomId]);
 
   const loadRoomData = async () => {
     try {
@@ -1124,7 +1173,7 @@ export default function RoomPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-2 sm:p-4">
+    <div className="min-h-screen bg-background text-foreground p-2 sm:p-4">
       <div className="max-w-7xl mx-auto">
         {/* Room Header */}
         <Card className="mb-4 sm:mb-6">
@@ -1150,9 +1199,9 @@ export default function RoomPage() {
                 )}
               </div>
               <div className="text-left sm:text-right">
-                <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 mb-1">
-                  <Users className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span>{userCount} users</span>
+                <div className="flex items-center gap-2 text-xs sm:text-sm text-card-foreground">
+                  <Users className="h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
+                  <span>{userCount} active users</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
                   <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -1295,8 +1344,10 @@ export default function RoomPage() {
                       {queue.map((item, index) => (
                         <div
                           key={item.queue_id}
-                          className={`p-2 sm:p-3 rounded-lg border ${
-                            item.order_index === room.current_order ? "bg-purple-50 border-purple-200" : "bg-white"
+                          className={`p-2 sm:p-3 rounded-lg border border-gray-200 dark:border-gray-700 ${
+                            item.order_index === room.current_order
+                              ? "bg-purple-50 border-purple-200 dark:border-purple-400 text-card-foreground dark:text-foreground"
+                              : "bg-white dark:bg-muted"
                           }`}
                         >
                           <div className="flex items-start gap-2 sm:gap-3">
@@ -1308,10 +1359,10 @@ export default function RoomPage() {
                             <div className="flex-1 min-w-0 w-0">
                               {" "}
                               {/* Added w-0 here */}
-                              <p className="text-xs sm:text-sm font-medium truncate">{item.title}</p>
-                              <p className="text-xs text-gray-500">{item.duration}</p>
+                              <p className="text-sm sm:text-base font-medium truncate text-card-foreground dark:text-foreground">{item.title}</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">{item.duration}</p>
                               {item.order_index === room.current_order && (
-                                <Badge variant="secondary" className="text-xs mt-1">
+                                <Badge variant="secondary" className="text-xs mt-1 text-card-foreground dark:text-foreground">
                                   Now Playing
                                 </Badge>
                               )}

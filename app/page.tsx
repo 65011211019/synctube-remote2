@@ -22,6 +22,7 @@ import { generateRoomId } from "@/lib/room"
 import { generateQRCode } from "@/lib/qr"
 import { hashPassword } from "@/lib/auth"
 import { toast } from "@/hooks/use-toast"
+import Footer from "@/components/Footer";
 
 // Interface for the Room object displayed in the UI, including calculated fields
 interface Room {
@@ -181,8 +182,12 @@ export default function HomePage() {
       // FIX 1: Use double assertion: roomsData is initially unknown to TS, cast to unknown then to RawRoomData[]
       const rawRooms: RawRoomData[] = (roomsData || []) as unknown as RawRoomData[];
 
+      // Filter out expired rooms (expires_at <= now)
+      const now = new Date();
+      const filteredRooms = rawRooms.filter(room => new Date(room.expires_at).getTime() > now.getTime());
+
       const roomsWithCounts: Room[] = await Promise.all(
-        rawRooms.map(async (room) => {
+        filteredRooms.map(async (room) => {
           const { count } = await supabase
             .from("room_presence")
             .select("*", { count: "exact", head: true })
@@ -392,7 +397,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-blue-50 to-pink-100 p-2 sm:p-4">
+    <div className="min-h-screen bg-background text-foreground p-2 sm:p-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8 px-2">
@@ -583,76 +588,8 @@ export default function HomePage() {
             </div>
           </DialogContent>
         </Dialog>
-
-        {/* Active Rooms */}
-        <div className="px-2">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 text-center sm:text-left">Active Rooms</h2>
-          {loading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
-              <p className="text-gray-600 mt-2 text-sm sm:text-base">Loading rooms...</p>
-            </div>
-          ) : rooms.length === 0 || !isSupabaseConfigured ? (
-            <Card>
-              <CardContent className="text-center py-8">
-                <Music className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600 text-sm sm:text-base">No active rooms found</p>
-                <p className="text-xs sm:text-sm text-gray-500">Create a new room to get started!</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
-              {rooms.map((room) => (
-                <Card key={room.room_id} className="hover:shadow-lg transition-shadow cursor-pointer">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div className="min-w-0 flex-1">
-                        <CardTitle className="text-base sm:text-lg truncate">{room.room_name}</CardTitle>
-                        <CardDescription className="font-mono text-sm sm:text-lg font-bold text-purple-600">
-                          {room.room_id}
-                        </CardDescription>
-                      </div>
-                      {room.password_hash && <Lock className="h-4 w-4 text-gray-500 shrink-0 ml-2" />}
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
-                        <Users className="h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
-                        <span>{room.user_count} active users</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
-                        <Clock className="h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
-                        <span>Expires in {formatTimeRemaining(room.expires_at)}</span>
-                      </div>
-                      {room.current_video && (
-                        <Badge variant="secondary" className="text-xs">
-                          <Music className="h-3 w-3 mr-1" />
-                          Playing music
-                        </Badge>
-                      )}
-                    </div>
-                    <Button
-                      className="w-full mt-4 bg-transparent text-sm"
-                      variant="outline"
-                      onClick={() => {
-                        if (room.password_hash) {
-                          setJoinRoomId(room.room_id)
-                          setJoinRoomOpen(true)
-                        } else {
-                          joinRoom(room.room_id, "")
-                        }
-                      }}
-                    >
-                      Join Room
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </div>
       </div>
+      <Footer />
     </div>
   )
 }
