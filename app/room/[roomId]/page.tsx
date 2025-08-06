@@ -27,6 +27,7 @@ import {
   Share2,
   Copy,
   QrCode,
+  Check,
 } from "lucide-react"
 import { createClient } from "@/lib/supabase"
 import { getUserId } from "@/lib/user"
@@ -76,14 +77,21 @@ export default function RoomPage() {
   const [userCount, setUserCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
-  const [searchResults, setSearchResults] = useState<YouTubeVideo[]>([])
+  const [searchResults, setSearchResults] = useState<(YouTubeVideo & { fromPlaylist?: boolean; playlistTitle?: string })[]>([])
   const [searching, setSearching] = useState(false)
   const [showSearch, setShowSearch] = useState(false)
+  const [playlistMode, setPlaylistMode] = useState(false)
   const [showShare, setShowShare] = useState(false)
   const [shareQrCode, setShareQrCode] = useState("")
   const [generatingQr, setGeneratingQr] = useState(false)
   const [currentVideo, setCurrentVideo] = useState<QueueItem | null>(null)
   const [expired, setExpired] = useState(false);
+  const [autoFillEnabled, setAutoFillEnabled] = useState(true);
+
+  // Extend session dialog
+  const [showExtend, setShowExtend] = useState(false)
+  const [extendCode, setExtendCode] = useState("")
+  const [extending, setExtending] = useState(false)
 
   // YouTube Player
   const playerRef = useRef<any>(null)
@@ -172,13 +180,49 @@ export default function RoomPage() {
     setCurrentVideo(current || null)
   }, [room, playerReady, queue])
 
+  // Host-only: auto skip when votes > half of active users
+  useEffect(() => {
+    // must be host, have room, and a current video
+    if (!isHost || !room || !currentVideo) return
+
+    // votes for the current video
+    const votesForCurrent = votes.filter(v => v.youtube_id === currentVideo.youtube_id)
+    const threshold = Math.ceil(userCount / 2)
+
+    if (threshold > 0 && votesForCurrent.length >= threshold) {
+      console.log(`Skip vote reached: ${votesForCurrent.length}/${threshold}. Skipping...`)
+      ;(async () => {
+        try {
+          // clear votes for this video in this room to avoid re-trigger loops
+          await supabase.from("votes")
+            .delete()
+            .eq("room_id", roomId)
+            .eq("youtube_id", currentVideo.youtube_id)
+
+          // skip to next song
+          await playNextSong()
+          toast({
+            title: "Skipped by Vote",
+            description: `Reached ${votesForCurrent.length}/${threshold} votes`,
+          })
+        } catch (e) {
+          console.error("Auto-skip by vote error:", e)
+        }
+      })()
+    }
+  }, [isHost, room, currentVideo, votes, userCount])
+
   // Auto-fill queue if empty or no new song for 2+ minutes (host only)
   useEffect(() => {
-    if (!isHost || !roomId || expired) return;
+    if (!isHost || !roomId || expired || !autoFillEnabled) return;
     const interval = setInterval(async () => {
-      if (!isHostRef.current || expired) return;
+      if (!isHostRef.current || expired || !autoFillEnabled) return;
       const q = queueRef.current;
-      if (q.length >= 3) return; // จำกัด queue auto-fill สูงสุด 3 เพลง
+      const currentRoom = roomRef.current;
+      
+      // จำกัด queue auto-fill สูงสุด 5 เพลง
+      if (q.length >= 5) return;
+      
       let shouldAdd = false;
       if (q.length === 0) {
         shouldAdd = true;
@@ -188,16 +232,26 @@ export default function RoomPage() {
         // ถ้าไม่มี created_at ให้ข้าม
         if (!('created_at' in lastSong)) return;
         const lastAdded = new Date((lastSong as any).created_at).getTime();
-        if (Date.now() - lastAdded > 1 * 60 * 1000) {
+        // เพิ่มเวลาเป็น 3 นาที เพื่อลดการเพิ่มเพลงบ่อยเกินไป
+        if (Date.now() - lastAdded > 3 * 60 * 1000) {
           shouldAdd = true;
         }
       }
+      
       if (shouldAdd) {
-        // ห้ามซ้ำเพลงเดิมในคิว
+        // ห้ามซ้ำเพลงเดิมในคิวและเพลงที่กำลังเล่นอยู่
         const existingIds = new Set(q.map(item => item.youtube_id));
+        if (currentRoom?.current_video) {
+          existingIds.add(currentRoom.current_video);
+        }
+        if (currentRoom?.override_video_id) {
+          existingIds.add(currentRoom.override_video_id);
+        }
+        
         let randomVideo = null;
         let tries = 0;
-        while (tries < 5) {
+        // เพิ่มจำนวนการพยายามเป็น 10 ครั้ง
+        while (tries < 10) {
           const candidate = await getRandomYouTubeVideo();
           if (candidate && !existingIds.has(candidate.id)) {
             randomVideo = candidate;
@@ -205,7 +259,9 @@ export default function RoomPage() {
           }
           tries++;
         }
+        
         if (randomVideo) {
+          console.log(`Auto-adding song: ${randomVideo.title} (ID: ${randomVideo.id})`);
           await supabase.from("queue").insert({
             room_id: roomId,
             youtube_id: randomVideo.id,
@@ -215,11 +271,13 @@ export default function RoomPage() {
             added_by: "auto",
             order_index: q.length,
           });
+        } else {
+          console.log("Failed to find unique random video after 10 attempts");
         }
       }
-    }, 20000); // เช็คทุก 20 วินาที
+    }, 30000); // เพิ่มเวลาเป็น 30 วินาที
     return () => clearInterval(interval);
-  }, [isHost, roomId, expired]);
+  }, [isHost, roomId, expired, autoFillEnabled]);
 
   const loadRoomData = async () => {
     try {
@@ -269,8 +327,9 @@ export default function RoomPage() {
       // เช็คหมดอายุ
       if (new Date(String(roomData.expires_at)) < new Date()) {
         setExpired(true);
-        setLoading(false);
-        return;
+        // ไม่ return เพื่อให้กดต่ออายุได้บนจอ expired
+      } else {
+        setExpired(false);
       }
 
       setRoom(roomData as unknown as Room)
@@ -932,6 +991,7 @@ export default function RoomPage() {
 
     console.log("Playing override video:", videoId)
 
+    // ตั้งค่า override video และเล่นเพลง
     await updateRoomState({
       override_video_id: videoId,
       is_playing: true,
@@ -944,8 +1004,20 @@ export default function RoomPage() {
 
     setSearching(true)
     try {
-      const results = await searchYouTube(searchQuery)
+      // Check if query is a YouTube playlist URL
+      const isPlaylistUrl = /(?:youtube\.com\/playlist\?list=|youtu\.be\/|youtube\.com\/watch\?v=)[^&]*&list=|youtube\.com\/playlist\?list=([^&&]+)/.test(searchQuery) ||
+                          searchQuery.startsWith("PL") && searchQuery.length === 34
+      
+      const type = isPlaylistUrl ? "playlist" : "search"
+      const results = await searchYouTube(searchQuery, type)
       setSearchResults(results)
+      
+      if (isPlaylistUrl && results.length > 0) {
+        toast({
+          title: "Playlist Loaded",
+          description: `Added ${results.length} songs from playlist`,
+        })
+      }
     } catch (error) {
       console.error("Error searching videos:", error)
       toast({
@@ -957,6 +1029,8 @@ export default function RoomPage() {
       setSearching(false)
     }
   }
+
+  const [addedSongs, setAddedSongs] = useState<Set<string>>(new Set())
 
   const addToQueue = async (video: YouTubeVideo) => {
     try {
@@ -972,14 +1046,26 @@ export default function RoomPage() {
         order_index: maxOrder + 1,
       })
 
+      // Mark as added temporarily
+      setAddedSongs(prev => new Set(prev).add(video.id))
+
+      // Show success toast
       toast({
         title: "Success",
         description: "Song added to queue",
       })
 
-      setShowSearch(false)
-      setSearchQuery("")
-      setSearchResults([])
+      // Remove the added state after 2 seconds
+      setTimeout(() => {
+        setAddedSongs(prev => {
+          const newSet = new Set(prev)
+          newSet.delete(video.id)
+          return newSet
+        })
+      }, 2000)
+
+      // ไม่ปิด dialog และไม่ล้างคำค้นหา ให้ผู้ใช้สามารถเพิ่มเพลงเพิ่มเติมได้ทันที
+      // ไม่ต้อง setSearchQuery("") และ setSearchResults([])
 
       // If this is the first song and no video is playing, start playing it
       if (queue.length === 0 && !room?.current_video && isHost) {
@@ -1048,6 +1134,43 @@ export default function RoomPage() {
         description: "Failed to record vote",
         variant: "destructive",
       })
+    }
+  }
+
+  const extendRoom = async (code?: string) => {
+    try {
+      setExtending(true)
+      const res = await fetch("/api/room/extend-expiry", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ room_id: roomId, code: (code ?? (extendCode || null)) }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        toast({
+          title: "Extend Failed",
+          description: data?.hint || data?.error || "ต่อเวลาไม่สำเร็จ",
+          variant: "destructive",
+        })
+        return
+      }
+      toast({
+        title: "Extended",
+        description: "ขยายเวลาเพิ่มอีก 2 ชั่วโมงแล้ว",
+      })
+      setExtendCode("")
+      setShowExtend(false)
+      // Reload room data to reflect new expiry
+      await loadRoomData()
+    } catch (e) {
+      console.error("extendRoom error:", e)
+      toast({
+        title: "Error",
+        description: "ไม่สามารถต่อเวลาได้",
+        variant: "destructive",
+      })
+    } finally {
+      setExtending(false)
     }
   }
 
@@ -1182,13 +1305,33 @@ export default function RoomPage() {
     )
   }
 
-  if (expired) {
+  if (expired && room) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="max-w-md w-full p-6 bg-white rounded-lg shadow text-center">
-          <h2 className="text-xl font-bold mb-2">Room has expired</h2>
-          <p className="mb-4">Your session has ended. Please return to the homepage.</p>
-          <Button onClick={() => router.push("/")}>Back to Home</Button>
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <div className="w-full max-w-md p-6 bg-white rounded-lg shadow text-center">
+          <h2 className="text-xl font-bold mb-2">Room Expired</h2>
+          <p className="mb-4 text-sm">ห้องนี้หมดเวลาแล้ว กรุณาต่อเวลาเพื่อใช้งานต่อ</p>
+
+          <div className="space-y-3 text-left">
+            <label className="text-xs text-gray-600">กรอกโค้ดเพื่อขยายเวลา (+2 ชั่วโมง)</label>
+            <Input
+              value={extendCode}
+              onChange={(e) => setExtendCode(e.target.value)}
+              placeholder='กรอกโค้ด'
+            />
+            <Button onClick={() => extendRoom()} disabled={extending || !extendCode.trim()} className="w-full">
+              {extending ? "Extending..." : "Extend +2 hours"}
+            </Button>
+            <p className="text-[11px] text-gray-500">
+              โปรดกรอกโค้ดเพื่อขยายเวลาใช้งาน หากไม่มีโค้ดให้ติดต่อผู้ดูแลระบบ
+            </p>
+          </div>
+
+          <div className="mt-6">
+            <Button variant="outline" onClick={() => router.push("/")} className="w-full">
+              Back to Home
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -1224,15 +1367,25 @@ export default function RoomPage() {
                 </CardTitle>
                 <p className="text-xs sm:text-sm text-gray-600 font-mono mt-1">Room ID: {room.room_id}</p>
                 {isHost && (
-                  <Button
-                    onClick={openShareDialog}
-                    size="sm"
-                    variant="outline"
-                    className="mt-2 sm:mt-0 sm:ml-2 bg-transparent text-xs sm:text-sm"
-                  >
-                    <Share2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                    Share Room
-                  </Button>
+                  <div className="flex gap-2 mt-2 sm:mt-0 sm:ml-2">
+                    <Button
+                      onClick={() => setShowExtend(true)}
+                      size="sm"
+                      variant="default"
+                      className="text-xs sm:text-sm"
+                    >
+                      + Extend 2h
+                    </Button>
+                    <Button
+                      onClick={openShareDialog}
+                      size="sm"
+                      variant="outline"
+                      className="bg-transparent text-xs sm:text-sm"
+                    >
+                      <Share2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                      Share Room
+                    </Button>
+                  </div>
                 )}
               </div>
               <div className="text-left sm:text-right">
@@ -1244,6 +1397,19 @@ export default function RoomPage() {
                   <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span>Expires in {formatTimeRemaining(room.expires_at)}</span>
                 </div>
+                {isHost && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="text-xs sm:text-sm text-gray-600">Auto-fill:</span>
+                    <Button
+                      onClick={() => setAutoFillEnabled(!autoFillEnabled)}
+                      size="sm"
+                      variant={autoFillEnabled ? "default" : "outline"}
+                      className="text-xs"
+                    >
+                      {autoFillEnabled ? "ON" : "OFF"}
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           </CardHeader>
@@ -1427,24 +1593,14 @@ export default function RoomPage() {
                                       <ChevronDown className="h-3 w-3" />
                                     </Button>
                                   </div>
-                                  <div className="flex gap-1">
-                                    <Button
-                                      onClick={() => playOverride(item.youtube_id)}
-                                      variant="ghost"
-                                      size="sm"
-                                      className="h-6 w-6 p-0"
-                                    >
-                                      <Play className="h-3 w-3" />
-                                    </Button>
-                                    <Button
-                                      onClick={() => removeFromQueue(item.queue_id, item.added_by)}
-                                      variant="ghost"
-                                      size="sm"
-                                      className="h-6 w-6 p-0"
-                                    >
-                                      <Trash2 className="h-3 w-3" />
-                                    </Button>
-                                  </div>
+                                  <Button
+                                    onClick={() => removeFromQueue(item.queue_id, item.added_by)}
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
                                 </>
                               )}
                               {!isHost && item.added_by === userId && (
@@ -1506,10 +1662,25 @@ export default function RoomPage() {
                         <p className="text-xs text-gray-500">{video.duration}</p>
                       </div>
                       <div className="flex flex-col sm:flex-row gap-1 sm:gap-2 shrink-0">
-                        <Button onClick={() => addToQueue(video)} size="sm" className="text-xs">
-                          <Plus className="h-3 w-3 mr-1" />
-                          <span className="hidden sm:inline">Add to Queue</span>
-                          <span className="sm:hidden">Add</span>
+                        <Button 
+                          onClick={() => addToQueue(video)} 
+                          size="sm" 
+                          className="text-xs"
+                          disabled={addedSongs.has(video.id)}
+                        >
+                          {addedSongs.has(video.id) ? (
+                            <>
+                              <Check className="h-3 w-3 mr-1" />
+                              <span className="hidden sm:inline">Added</span>
+                              <span className="sm:hidden">Added</span>
+                            </>
+                          ) : (
+                            <>
+                              <Plus className="h-3 w-3 mr-1" />
+                              <span className="hidden sm:inline">Add to Queue</span>
+                              <span className="sm:hidden">Add</span>
+                            </>
+                          )}
                         </Button>
                         {isHost && (
                           <Button
@@ -1531,6 +1702,40 @@ export default function RoomPage() {
                   ))}
                 </div>
               </ScrollArea>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Extend Dialog (host can extend anytime) */}
+        <Dialog open={showExtend} onOpenChange={setShowExtend}>
+          <DialogContent className="w-[95vw] max-w-md mx-auto">
+            <DialogHeader>
+              <DialogTitle className="text-lg sm:text-xl">Extend Room</DialogTitle>
+              <DialogDescription className="text-sm">ขยายเวลาใช้งานห้อง (+2 ชั่วโมง)</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">โค้ด (ถ้ามี)</label>
+                <Input
+                  value={extendCode}
+                  onChange={(e) => setExtendCode(e.target.value)}
+                  placeholder='กรอกโค้ด'
+                />
+                <p className="text-[11px] text-gray-500 mt-1">
+                  โปรดกรอกโค้ดเพื่อขยายเวลาใช้งาน หากไม่มีโค้ดให้ติดต่อผู้ดูแลระบบ
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={() => extendRoom()} disabled={extending} className="flex-1">
+                  {extending ? "Extending..." : "Extend +2 hours"}
+                </Button>
+                <Button variant="outline" onClick={() => setShowExtend(false)} className="flex-1">
+                  Close
+                </Button>
+              </div>
+              <div className="text-xs text-gray-600">
+                Expires in: {formatTimeRemaining(room.expires_at)}
+              </div>
             </div>
           </DialogContent>
         </Dialog>

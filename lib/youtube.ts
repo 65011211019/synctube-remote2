@@ -6,9 +6,14 @@ export interface YouTubeVideo {
   channelTitle: string
 }
 
-export async function searchYouTube(query: string): Promise<YouTubeVideo[]> {
+export async function searchYouTube(query: string, type: "search" | "playlist" = "search"): Promise<YouTubeVideo[]> {
   try {
-    const response = await fetch(`/api/youtube/search?q=${encodeURIComponent(query)}`)
+    const params = new URLSearchParams({ q: query })
+    if (type === "playlist") {
+      params.append("type", "playlist")
+    }
+    
+    const response = await fetch(`/api/youtube/search?${params.toString()}`)
     if (!response.ok) throw new Error("Search failed")
 
     const data = await response.json()

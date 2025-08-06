@@ -45,7 +45,7 @@ export default function RootLayout({
               <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-16">
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-2">
-                  <span className="text-purple-600 font-bold text-lg hidden sm:inline">SyncTube Remote</span>
+                  <span className="font-bold text-lg hidden sm:inline">SyncTube Remote</span>
                 </Link>
                 {/* Desktop Menu */}
                 <div className="hidden md:flex items-center gap-4">
@@ -53,12 +53,12 @@ export default function RootLayout({
                     <NavigationMenuList>
                       <NavigationMenuItem>
                         <NavigationMenuLink asChild>
-                          <Link href="/" className="text-purple-600 font-bold text-lg px-3 py-2 hover:bg-purple-50 rounded transition-colors">Home</Link>
+                          <Link href="/" className="font-bold text-lg px-3 py-2 hover:bg-muted rounded transition-colors">Home</Link>
                         </NavigationMenuLink>
                       </NavigationMenuItem>
                       <NavigationMenuItem>
                         <NavigationMenuLink asChild>
-                          <Link href="/active-rooms" className="text-purple-600 font-bold text-lg px-3 py-2 hover:bg-purple-50 rounded transition-colors">Active Rooms</Link>
+                          <Link href="/active-rooms" className="font-bold text-lg px-3 py-2 hover:bg-muted rounded transition-colors">Active Rooms</Link>
                         </NavigationMenuLink>
                       </NavigationMenuItem>
                     </NavigationMenuList>
@@ -75,8 +75,8 @@ export default function RootLayout({
                     </DrawerTrigger>
                     <DrawerContent>
                       <div className="flex flex-col gap-2 p-4">
-                        <Link href="/" className="text-purple-600 font-bold text-lg px-3 py-2 rounded transition-colors">Home</Link>
-                        <Link href="/active-rooms" className="text-purple-600 font-bold text-lg px-3 py-2 rounded transition-colors">Active Rooms</Link>
+                        <Link href="/" className="font-bold text-lg px-3 py-2 hover:bg-muted rounded transition-colors">Home</Link>
+                        <Link href="/active-rooms" className="font-bold text-lg px-3 py-2 hover:bg-muted rounded transition-colors">Active Rooms</Link>
                         <div className="mt-4"><ThemeToggle /></div>
                       </div>
                     </DrawerContent>
