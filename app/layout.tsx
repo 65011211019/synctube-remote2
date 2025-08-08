@@ -45,6 +45,7 @@ export default function RootLayout({
               <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-16">
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-2">
+                  <Image src="/logostr.png" alt="SyncTube Remote logo" width={32} height={32} className="h-8 w-8" priority />
                   <span className="font-bold text-lg hidden sm:inline">SyncTube Remote</span>
                 </Link>
                 {/* Desktop Menu */}

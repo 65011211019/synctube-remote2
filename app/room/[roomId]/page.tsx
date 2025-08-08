@@ -63,6 +63,14 @@ interface Vote {
   voted_by: string
 }
 
+interface Message {
+  message_id: string
+  room_id: string
+  user_id: string
+  content: string
+  created_at: string
+}
+
 export default function RoomPage() {
   const params = useParams()
   const router = useRouter()
@@ -87,6 +95,12 @@ export default function RoomPage() {
   const [currentVideo, setCurrentVideo] = useState<QueueItem | null>(null)
   const [expired, setExpired] = useState(false);
   const [autoFillEnabled, setAutoFillEnabled] = useState(true);
+
+  // Chat state
+  const [messages, setMessages] = useState<Message[]>([])
+  const [messageInput, setMessageInput] = useState("")
+  const [sendingMessage, setSendingMessage] = useState(false)
+  const messagesEndRef = useRef<HTMLDivElement | null>(null)
 
   // Extend session dialog
   const [showExtend, setShowExtend] = useState(false)
@@ -123,6 +137,13 @@ export default function RoomPage() {
     isHostRef.current = isHost
   }, [isHost])
 
+  // Auto-scroll chat to bottom on new messages
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
+    }
+  }, [messages])
+
   useEffect(() => {
     if (!userId) {
       router.push("/")
@@ -130,6 +151,7 @@ export default function RoomPage() {
     }
 
     loadRoomData()
+    loadMessages()
     startHeartbeat()
     setupRealtimeSubscriptions()
 
@@ -278,6 +300,25 @@ export default function RoomPage() {
     }, 30000); // เพิ่มเวลาเป็น 30 วินาที
     return () => clearInterval(interval);
   }, [isHost, roomId, expired, autoFillEnabled]);
+
+  const loadMessages = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("messages")
+        .select("*")
+        .eq("room_id", roomId)
+        .order("created_at", { ascending: true })
+        .limit(200)
+
+      if (error) {
+        console.warn("Messages loading error:", error)
+        return
+      }
+      setMessages((data || []) as unknown as Message[])
+    } catch (error) {
+      console.error("Error loading messages:", error)
+    }
+  }
 
   const loadRoomData = async () => {
     try {
@@ -451,6 +492,23 @@ export default function RoomPage() {
         (payload) => {
           console.log("Vote change received:", payload)
           loadRoomData()
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "messages", filter: `room_id=eq.${roomId}` },
+        (payload) => {
+          console.log("Message change received:", payload)
+          if (payload.eventType === "INSERT") {
+            setMessages((prev) => [...prev, payload.new as Message])
+          } else if (payload.eventType === "DELETE") {
+            const deleted = (payload as any).old
+            setMessages((prev) => prev.filter((m) => m.message_id !== deleted?.message_id))
+          } else if (payload.eventType === "UPDATE") {
+            setMessages((prev) =>
+              prev.map((m) => (m.message_id === (payload.new as any).message_id ? (payload.new as Message) : m)),
+            )
+          }
         },
       )
       .on(
@@ -1137,6 +1195,33 @@ export default function RoomPage() {
     }
   }
 
+  const sendMessage = async () => {
+    const content = messageInput.trim()
+    if (!content) return
+    try {
+      setSendingMessage(true)
+      const { error } = await supabase.from("messages").insert({
+        room_id: roomId,
+        user_id: userId,
+        content,
+      })
+      if (error) {
+        console.error("Error sending message:", error)
+        toast({
+          title: "Error",
+          description: "Failed to send message",
+          variant: "destructive",
+        })
+        return
+      }
+      setMessageInput("")
+    } catch (e) {
+      console.error("sendMessage error:", e)
+    } finally {
+      setSendingMessage(false)
+    }
+  }
+
   const extendRoom = async (code?: string) => {
     try {
       setExtending(true)
@@ -1185,6 +1270,14 @@ export default function RoomPage() {
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
 
     return `${hours}h ${minutes}m`
+  }
+
+  const formatMessageTime = (iso: string) => {
+    try {
+      return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+    } catch {
+      return ""
+    }
   }
 
   const generateShareQR = async () => {
@@ -1620,6 +1713,59 @@ export default function RoomPage() {
                     </div>
                   )}
                 </ScrollArea>
+              </CardContent>
+            </Card>
+
+            <Card className="mt-4">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base sm:text-lg">Chat</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <ScrollArea className="h-64 sm:h-96 pr-2">
+                  <div className="space-y-2 py-2">
+                    {messages.length === 0 ? (
+                      <div className="text-center text-xs text-gray-500 py-8">No messages yet</div>
+                    ) : (
+                      messages.map((m) => (
+                        <div key={m.message_id} className={`flex ${m.user_id === userId ? "justify-end" : "justify-start"}`}>
+                          <div
+                            className={`max-w-[75%] rounded-lg px-3 py-2 text-xs sm:text-sm ${
+                              m.user_id === userId
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-secondary text-secondary-foreground"
+                            }`}
+                          >
+                            <div className="text-[10px] opacity-70 mb-1">
+                              {m.user_id === userId ? "You" : m.user_id?.slice(0, 8)}
+                            </div>
+                            <div className="whitespace-pre-wrap break-words">{m.content}</div>
+                            <div className="text-[10px] opacity-60 mt-1 text-right">
+                              {formatMessageTime(m.created_at)}
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                    <div ref={messagesEndRef} />
+                  </div>
+                </ScrollArea>
+                <div className="mt-2 flex gap-2">
+                  <Input
+                    value={messageInput}
+                    onChange={(e) => setMessageInput(e.target.value)}
+                    placeholder="Type a message..."
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault()
+                        sendMessage()
+                      }
+                    }}
+                    className="text-sm"
+                  />
+                  <Button onClick={sendMessage} disabled={sendingMessage || !messageInput.trim()} className="shrink-0">
+                    {sendingMessage ? "Sending..." : "Send"}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>

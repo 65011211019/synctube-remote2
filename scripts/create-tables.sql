@@ -46,6 +46,15 @@ CREATE TABLE votes (
   UNIQUE(room_id, youtube_id, voted_by)
 );
 
+-- Create messages table for realtime chat
+CREATE TABLE messages (
+  message_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  room_id TEXT REFERENCES rooms(room_id) ON DELETE CASCADE,
+  user_id TEXT NOT NULL,
+  content TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Create room_presence table for active users
 CREATE TABLE room_presence (
   room_id TEXT REFERENCES rooms(room_id) ON DELETE CASCADE,
@@ -60,18 +69,21 @@ CREATE INDEX idx_rooms_expires_at ON rooms(expires_at);
 CREATE INDEX idx_queue_room_order ON queue(room_id, order_index);
 CREATE INDEX idx_presence_room ON room_presence(room_id);
 CREATE INDEX idx_presence_last_seen ON room_presence(last_seen);
+CREATE INDEX idx_messages_room_created_at ON messages(room_id, created_at);
 
 -- Enable Row Level Security
 ALTER TABLE rooms ENABLE ROW LEVEL SECURITY;
 ALTER TABLE queue ENABLE ROW LEVEL SECURITY;
 ALTER TABLE votes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE room_presence ENABLE ROW LEVEL SECURITY;
+ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
 
 -- Create policies for public access (since we're not using auth)
 CREATE POLICY "Allow all operations on rooms" ON rooms FOR ALL USING (true);
 CREATE POLICY "Allow all operations on queue" ON queue FOR ALL USING (true);
 CREATE POLICY "Allow all operations on votes" ON votes FOR ALL USING (true);
 CREATE POLICY "Allow all operations on room_presence" ON room_presence FOR ALL USING (true);
+CREATE POLICY "Allow all operations on messages" ON messages FOR ALL USING (true);
 
 -- Insert some sample data for testing (optional)
 -- INSERT INTO rooms (room_id, room_name, host_user_id, expires_at) 
