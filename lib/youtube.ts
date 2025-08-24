@@ -39,8 +39,6 @@ function parseDurationToSeconds(duration: string): number {
 
 export async function getRandomYouTubeVideo(): Promise<YouTubeVideo | null> {
   const keywords = [
-    // เพลงสากล
-    "lofi", "pop music", "chill", "jazz", "edm", "acoustic", "rock", "hip hop", "indie", "instrumental",
     // เพลงไทย
     "เพลงฮิต", "เพลงใหม่", "เพลงลูกทุ่ง", "เพลงเพื่อชีวิต", "เพลงรัก", "เพลงไทยสากล", "เพลงอกหัก", "เพลงช้า", "เพลงเร็ว", "เพลงดังในTikTok"
   ];

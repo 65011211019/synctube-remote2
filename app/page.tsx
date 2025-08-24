@@ -401,7 +401,7 @@ export default function HomePage() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8 px-2">
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 mb-3 flex items-center justify-center gap-2 flex-wrap drop-shadow-lg">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-purple-600 mb-3 flex items-center justify-center gap-2 flex-wrap drop-shadow-lg">
             <Music className="h-8 w-8 sm:h-10 sm:w-10 text-purple-600" />
             <span>SyncTube Remote</span>
           </h1>
@@ -410,45 +410,11 @@ export default function HomePage() {
           </p>
         </div>
 
-        {/* Feature Highlights */}
-        <div className="max-w-4xl mx-auto mb-10">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div className="flex items-start gap-3 bg-white/90 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-shadow border border-purple-100">
-              <Music className="h-7 w-7 text-purple-600 mt-1" />
-              <div>
-                <div className="font-bold text-lg text-gray-900 mb-1">Listen Together in Real-Time</div>
-                <div className="text-sm text-gray-600">Create a room, share a link or QR code, and enjoy YouTube music with friends anywhere.</div>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 bg-white/90 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-shadow border border-purple-100">
-              <Users className="h-7 w-7 text-purple-600 mt-1" />
-              <div>
-                <div className="font-bold text-lg text-gray-900 mb-1">Queue Management & Skip Voting</div>
-                <div className="text-sm text-gray-600">Add, remove, and reorder songs in the queue. Vote to skip songs you don't want to hear.</div>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 bg-white/90 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-shadow border border-purple-100">
-              <Lock className="h-7 w-7 text-purple-600 mt-1" />
-              <div>
-                <div className="font-bold text-lg text-gray-900 mb-1">Private Rooms</div>
-                <div className="text-sm text-gray-600">Set a room password to keep your session private and secure.</div>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 bg-white/90 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-shadow border border-purple-100">
-              <Clock className="h-7 w-7 text-purple-600 mt-1" />
-              <div>
-                <div className="font-bold text-lg text-gray-900 mb-1">Auto-Expiring Rooms</div>
-                <div className="text-sm text-gray-600">Rooms are automatically deleted after expiration for privacy and resource efficiency.</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
+        {/* Action Buttons - Moved to top */}
         <div className="flex flex-col sm:flex-row gap-4 mb-10 justify-center px-2">
           <Dialog open={createRoomOpen} onOpenChange={setCreateRoomOpen}>
             <DialogTrigger asChild>
-              <Button size="lg" className="bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold shadow-lg w-full sm:w-auto transition-all">
+              <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-white font-bold shadow-lg w-full sm:w-auto transition-all">
                 <Plus className="h-5 w-5 mr-2" />
                 Create Room
               </Button>
@@ -564,6 +530,42 @@ export default function HomePage() {
             </DialogContent>
           </Dialog>
         </div>
+
+        {/* Feature Highlights */}
+        <div className="max-w-4xl mx-auto mb-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="flex items-start gap-3 bg-white/90 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-shadow border border-purple-100">
+              <Music className="h-7 w-7 text-purple-600 mt-1" />
+              <div>
+                <div className="font-bold text-lg text-gray-900 mb-1">Listen Together in Real-Time</div>
+                <div className="text-sm text-gray-600">Create a room, share a link or QR code, and enjoy YouTube music with friends anywhere.</div>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 bg-white/90 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-shadow border border-purple-100">
+              <Users className="h-7 w-7 text-purple-600 mt-1" />
+              <div>
+                <div className="font-bold text-lg text-gray-900 mb-1">Queue Management & Skip Voting</div>
+                <div className="text-sm text-gray-600">Add, remove, and reorder songs in the queue. Vote to skip songs you don't want to hear.</div>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 bg-white/90 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-shadow border border-purple-100">
+              <Lock className="h-7 w-7 text-purple-600 mt-1" />
+              <div>
+                <div className="font-bold text-lg text-gray-900 mb-1">Private Rooms</div>
+                <div className="text-sm text-gray-600">Set a room password to keep your session private and secure.</div>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 bg-white/90 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-shadow border border-purple-100">
+              <Clock className="h-7 w-7 text-purple-600 mt-1" />
+              <div>
+                <div className="font-bold text-lg text-gray-900 mb-1">Auto-Expiring Rooms</div>
+                <div className="text-sm text-gray-600">Rooms are automatically deleted after expiration for privacy and resource efficiency.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
 
         {/* QR Code Dialog */}
         <Dialog open={qrCodeOpen} onOpenChange={setQrCodeOpen}>

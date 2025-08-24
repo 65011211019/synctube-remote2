@@ -94,7 +94,8 @@ export default function RoomPage() {
   const [generatingQr, setGeneratingQr] = useState(false)
   const [currentVideo, setCurrentVideo] = useState<QueueItem | null>(null)
   const [expired, setExpired] = useState(false);
-  const [autoFillEnabled, setAutoFillEnabled] = useState(true);
+  const [autoFillEnabled, setAutoFillEnabled] = useState(false);
+  const [showPlayerForUsers, setShowPlayerForUsers] = useState(true);
 
   // Chat state
   const [messages, setMessages] = useState<Message[]>([])
@@ -123,6 +124,11 @@ export default function RoomPage() {
   // Heartbeat
   const heartbeatRef = useRef<NodeJS.Timeout>()
   const subscriptionRef = useRef<any>(null)
+  
+  // Visibility and sync tracking
+  const lastSyncTimeRef = useRef<number>(Date.now())
+  const isPageVisibleRef = useRef<boolean>(true)
+  const syncTimeoutRef = useRef<NodeJS.Timeout>()
 
   // Update refs whenever state changes
   useEffect(() => {
@@ -136,6 +142,38 @@ export default function RoomPage() {
   useEffect(() => {
     isHostRef.current = isHost
   }, [isHost])
+
+  // Handle page visibility changes for sync
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      const isVisible = !document.hidden
+      isPageVisibleRef.current = isVisible
+      
+      if (isVisible && !isHostRef.current) {
+        // Page became visible and user is not host - sync with current state
+        console.log('🔄 Page became visible - syncing with host...')
+        syncWithHost()
+      }
+    }
+
+    const handleFocus = () => {
+      if (!isHostRef.current) {
+        console.log('🔄 Window focused - syncing with host...')
+        syncWithHost()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('focus', handleFocus)
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('focus', handleFocus)
+      if (syncTimeoutRef.current) {
+        clearTimeout(syncTimeoutRef.current)
+      }
+    }
+  }, [])
 
   // Auto-scroll chat to bottom on new messages
   useEffect(() => {
@@ -175,6 +213,46 @@ export default function RoomPage() {
     }
   }, [room, playerReady, playerError, initAttempts])
 
+  // Reinitialize player when user toggles player visibility back on
+  useEffect(() => {
+    if (!isHost && showPlayerForUsers && room) {
+      // Check if player needs initialization
+      const needsInit = !playerReady && !playerRef.current
+      
+      if (needsInit) {
+        // Reset player state
+        setPlayerReady(false)
+        setPlayerError(null)
+        setLastVideoId(null)
+        
+        // Wait for DOM to update, then initialize
+        setTimeout(() => {
+          const containerExists = typeof window !== "undefined" && document.getElementById("youtube-player")
+          if (containerExists) {
+            console.log("Reinitializing player after toggle")
+            initializeYouTubePlayer()
+          }
+        }, 100)
+      }
+    }
+    
+    // Cleanup player when hidden
+    if (!isHost && !showPlayerForUsers && playerRef.current) {
+      console.log("Cleaning up player when hidden")
+      try {
+        if (typeof playerRef.current.destroy === "function") {
+          playerRef.current.destroy()
+        }
+      } catch (error) {
+        console.warn("Error destroying player:", error)
+      }
+      playerRef.current = null
+      setPlayerReady(false)
+      setPlayerError(null)
+      setLastVideoId(null)
+    }
+  }, [showPlayerForUsers, isHost, room, playerReady])
+
   // Handle room updates and sync player
   useEffect(() => {
     if (!room || !playerReady) return
@@ -182,14 +260,34 @@ export default function RoomPage() {
     const videoToPlay = room.override_video_id || room.current_video
     console.log("Room updated - Video to play:", videoToPlay, "Last video:", lastVideoId)
 
+    // Update last sync time
+    lastSyncTimeRef.current = Date.now()
+
     // Only update if video changed
     if (videoToPlay && videoToPlay !== lastVideoId) {
       console.log("Loading new video:", videoToPlay)
       setLastVideoId(videoToPlay)
       loadVideoInPlayer(videoToPlay, room.current_position || 0, room.is_playing)
     } else if (videoToPlay === lastVideoId && playerRef.current) {
-      // Same video, just sync play/pause state
-      console.log("Syncing play state:", room.is_playing)
+      // Same video, sync position and play/pause state
+      console.log("Syncing play state:", room.is_playing, "Position:", room.current_position)
+      
+      // For non-host users, always sync position to avoid drift
+      if (!isHost && room.current_position !== undefined) {
+        const currentTime = getCurrentTimeSafe()
+        const timeDiff = Math.abs(currentTime - room.current_position)
+        
+        // Sync if time difference is more than 2 seconds
+        if (timeDiff > 2) {
+          console.log(`🔄 Time drift detected: ${timeDiff.toFixed(1)}s - syncing position to ${room.current_position}s`)
+          try {
+            playerRef.current.seekTo(room.current_position, true)
+          } catch (error) {
+            console.warn('Error seeking to position:', error)
+          }
+        }
+      }
+      
       if (room.is_playing) {
         playerRef.current.playVideo()
       } else {
@@ -200,7 +298,7 @@ export default function RoomPage() {
     // Update current video display
     const current = queue.find((item) => item.order_index === room.current_order)
     setCurrentVideo(current || null)
-  }, [room, playerReady, queue])
+  }, [room, playerReady, queue, isHost])
 
   // Host-only: auto skip when votes > half of active users
   useEffect(() => {
@@ -441,7 +539,30 @@ export default function RoomPage() {
     sendHeartbeat()
 
     // Send heartbeat every 15 seconds
-    heartbeatRef.current = setInterval(sendHeartbeat, 15000)
+    heartbeatRef.current = setInterval(() => {
+      sendHeartbeat()
+      
+      // For host users, periodically update position to keep everyone in sync
+      if (isHostRef.current && roomRef.current?.is_playing && playerRef.current) {
+        const currentTime = getCurrentTimeSafe()
+        if (currentTime > 0) {
+          // Update position every 15 seconds when playing to help keep users in sync
+          updateRoomState({ current_position: currentTime })
+        }
+      }
+      
+      // For non-host users, perform periodic sync every 30 seconds if page is visible
+      if (!isHostRef.current && isPageVisibleRef.current && roomRef.current?.current_video) {
+        // Only sync occasionally to avoid too much network traffic
+        const now = Date.now()
+        const timeSinceLastSync = now - lastSyncTimeRef.current
+        
+        if (timeSinceLastSync > 30000) { // 30 seconds
+          console.log('🔄 Periodic sync check...')
+          syncWithHost()
+        }
+      }
+    }, 15000)
   }
 
   const sendHeartbeat = async () => {
@@ -474,7 +595,27 @@ export default function RoomPage() {
           console.log("Room change received:", payload)
           if (payload.eventType === "UPDATE") {
             const newRoom = payload.new as Room
+            
+            // Update last sync time when we receive room updates
+            lastSyncTimeRef.current = Date.now()
+            
             setRoom(newRoom)
+            
+            // For non-host users, if this is a position update while playing, ensure we're in sync
+            if (!isHostRef.current && newRoom.is_playing && playerRef.current && isPageVisibleRef.current) {
+              const currentTime = getCurrentTimeSafe()
+              const expectedTime = newRoom.current_position || 0
+              const timeDiff = Math.abs(currentTime - expectedTime)
+              
+              if (timeDiff > 3) {
+                console.log(`🔄 Real-time sync: adjusting position by ${timeDiff.toFixed(1)}s`)
+                try {
+                  playerRef.current.seekTo(expectedTime, true)
+                } catch (error) {
+                  console.warn('Error seeking during real-time sync:', error)
+                }
+              }
+            }
           }
         },
       )
@@ -583,6 +724,18 @@ export default function RoomPage() {
 
     // Clear any existing content
     container.innerHTML = ""
+    
+    // Reset player reference if it exists
+    if (playerRef.current) {
+      try {
+        if (typeof playerRef.current.destroy === "function") {
+          playerRef.current.destroy()
+        }
+      } catch (error) {
+        console.warn("Error destroying existing player:", error)
+      }
+      playerRef.current = null
+    }
 
     // Try YouTube API first
     loadYouTubeAPI()
@@ -822,6 +975,88 @@ export default function RoomPage() {
     }
     return roomRef.current?.current_position || 0
   }
+
+  // Sync with host position and state
+  const syncWithHost = useCallback(async () => {
+    if (isHostRef.current || !roomRef.current || !playerRef.current) return
+    
+    try {
+      // Get fresh room data
+      const { data: freshRoomData, error } = await supabase
+        .from("rooms")
+        .select("*")
+        .eq("room_id", roomId)
+        .eq("active", 1)
+        .single()
+
+      if (error || !freshRoomData) {
+        console.warn('Failed to get fresh room data for sync:', error)
+        return
+      }
+
+      const freshRoom = freshRoomData as unknown as Room
+      const videoToPlay = freshRoom.override_video_id || freshRoom.current_video
+      
+      if (!videoToPlay) return
+
+      console.log(`🔄 Syncing with host - Video: ${videoToPlay}, Position: ${freshRoom.current_position}s, Playing: ${freshRoom.is_playing}`)
+      
+      // Calculate expected position based on time elapsed since last update
+      let expectedPosition = freshRoom.current_position || 0
+      if (freshRoom.is_playing) {
+        // If playing, add time elapsed since room was last updated
+        // This helps account for any delay in receiving the update
+        const now = Date.now()
+        const timeSinceLastSync = (now - lastSyncTimeRef.current) / 1000
+        expectedPosition += Math.min(timeSinceLastSync, 5) // Cap at 5 seconds to avoid huge jumps
+      }
+      
+      // Check if we need to change video
+      if (videoToPlay !== lastVideoId) {
+        console.log(`🔄 Changing video during sync: ${videoToPlay}`)
+        setLastVideoId(videoToPlay)
+        loadVideoInPlayer(videoToPlay, expectedPosition, freshRoom.is_playing)
+        setRoom(freshRoom)
+        return
+      }
+      
+      // Same video - sync position and play state
+      const currentTime = getCurrentTimeSafe()
+      const timeDiff = Math.abs(currentTime - expectedPosition)
+      
+      // Sync position if difference is significant (more than 3 seconds)
+      if (timeDiff > 3) {
+        console.log(`🔄 Syncing position: current=${currentTime.toFixed(1)}s, expected=${expectedPosition.toFixed(1)}s, diff=${timeDiff.toFixed(1)}s`)
+        try {
+          playerRef.current.seekTo(expectedPosition, true)
+        } catch (error) {
+          console.warn('Error seeking during sync:', error)
+        }
+      }
+      
+      // Sync play/pause state
+      if (freshRoom.is_playing) {
+        try {
+          playerRef.current.playVideo()
+        } catch (error) {
+          console.warn('Error playing during sync:', error)
+        }
+      } else {
+        try {
+          playerRef.current.pauseVideo()
+        } catch (error) {
+          console.warn('Error pausing during sync:', error)
+        }
+      }
+      
+      // Update room state
+      setRoom(freshRoom)
+      lastSyncTimeRef.current = Date.now()
+      
+    } catch (error) {
+      console.error('Error syncing with host:', error)
+    }
+  }, [roomId, lastVideoId])
 
   const handlePlayerStateChange = useCallback(async (event: any) => {
     const currentRoom = roomRef.current
@@ -1389,7 +1624,7 @@ export default function RoomPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
           <p className="text-gray-600 text-sm sm:text-base">Loading room...</p>
@@ -1432,7 +1667,7 @@ export default function RoomPage() {
 
   if (!room) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardContent className="text-center py-8">
             <p className="text-gray-600 font-mono text-sm sm:text-base">Room not found</p>
@@ -1503,6 +1738,19 @@ export default function RoomPage() {
                     </Button>
                   </div>
                 )}
+                {!isHost && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="text-xs sm:text-sm text-gray-600">Show Player:</span>
+                    <Button
+                      onClick={() => setShowPlayerForUsers(!showPlayerForUsers)}
+                      size="sm"
+                      variant={showPlayerForUsers ? "default" : "outline"}
+                      className="text-xs"
+                    >
+                      {showPlayerForUsers ? "ON" : "OFF"}
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           </CardHeader>
@@ -1510,24 +1758,25 @@ export default function RoomPage() {
 
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
           {/* YouTube Player */}
-          <div className="xl:col-span-2">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base sm:text-lg">Now Playing</CardTitle>
-                {currentVideo && <p className="text-xs sm:text-sm text-gray-600 truncate">{currentVideo.title}</p>}
-                {!playerReady && !playerError && (
-                  <p className="text-xs sm:text-sm text-yellow-600">Loading player...</p>
-                )}
-                {playerError && (
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                    <p className="text-xs sm:text-sm text-red-600">{playerError}</p>
-                    <Button onClick={retryPlayerInit} size="sm" variant="outline" className="w-fit bg-transparent">
-                      <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                      Retry
-                    </Button>
-                  </div>
-                )}
-              </CardHeader>
+          {(isHost || showPlayerForUsers) && (
+            <div className="xl:col-span-2">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base sm:text-lg">Now Playing</CardTitle>
+                  {currentVideo && <p className="text-xs sm:text-sm text-gray-600 truncate">{currentVideo.title}</p>}
+                  {!playerReady && !playerError && (
+                    <p className="text-xs sm:text-sm text-yellow-600">Loading player...</p>
+                  )}
+                  {playerError && (
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                      <p className="text-xs sm:text-sm text-red-600">{playerError}</p>
+                      <Button onClick={retryPlayerInit} size="sm" variant="outline" className="w-fit bg-transparent">
+                        <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                        Retry
+                      </Button>
+                    </div>
+                  )}
+                </CardHeader>
               <CardContent className="pt-0">
                 <div className="aspect-video bg-black rounded-lg mb-4 relative">
                   <div id="youtube-player" className="w-full h-full rounded-lg"></div>
@@ -1577,17 +1826,29 @@ export default function RoomPage() {
                   )}
 
                   {!isHost && currentVideo && (
-                    <Button
-                      onClick={() => voteSkip(currentVideo.youtube_id)}
-                      variant="outline"
-                      size="sm"
-                      disabled={votes.some((v) => v.youtube_id === currentVideo.youtube_id && v.voted_by === userId)}
-                    >
-                      <ThumbsDown className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                      <span className="text-xs sm:text-sm">
-                        Skip Vote ({votes.filter((v) => v.youtube_id === currentVideo.youtube_id).length})
-                      </span>
-                    </Button>
+                    <>
+                      <Button
+                        onClick={() => voteSkip(currentVideo.youtube_id)}
+                        variant="outline"
+                        size="sm"
+                        disabled={votes.some((v) => v.youtube_id === currentVideo.youtube_id && v.voted_by === userId)}
+                      >
+                        <ThumbsDown className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                        <span className="text-xs sm:text-sm">
+                          Skip Vote ({votes.filter((v) => v.youtube_id === currentVideo.youtube_id).length})
+                        </span>
+                      </Button>
+                      <Button
+                        onClick={syncWithHost}
+                        variant="outline"
+                        size="sm"
+                        disabled={!playerReady}
+                        title="Sync with host if you're experiencing delays"
+                      >
+                        <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                        <span className="text-xs sm:text-sm">Sync</span>
+                      </Button>
+                    </>
                   )}
                 </div>
 
@@ -1604,9 +1865,10 @@ export default function RoomPage() {
               </CardContent>
             </Card>
           </div>
+          )}
 
           {/* Queue */}
-          <div>
+          <div className={isHost || showPlayerForUsers ? "" : "max-w-none"}>
             <Card>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
@@ -1642,7 +1904,7 @@ export default function RoomPage() {
                           key={item.queue_id}
                           className={`p-2 sm:p-3 rounded-lg border border-gray-200 dark:border-gray-700 ${
                             item.order_index === room.current_order
-                              ? "bg-purple-50 border-purple-200 dark:border-purple-400 text-card-foreground dark:text-foreground"
+                              ? "bg-purple-50 border-purple-200 dark:bg-purple-900/20 dark:border-purple-400"
                               : "bg-white dark:bg-muted"
                           }`}
                         >
@@ -1655,10 +1917,10 @@ export default function RoomPage() {
                             <div className="flex-1 min-w-0 w-0">
                               {" "}
                               {/* Added w-0 here */}
-                              <p className="text-sm sm:text-base font-medium truncate text-card-foreground dark:text-foreground">{item.title}</p>
+                              <p className="text-sm sm:text-base font-medium truncate text-gray-900 dark:text-foreground">{item.title}</p>
                               <p className="text-xs text-gray-500 dark:text-gray-400">{item.duration}</p>
                               {item.order_index === room.current_order && (
-                                <Badge variant="secondary" className="text-xs mt-1 text-card-foreground dark:text-foreground">
+                                <Badge variant="secondary" className="text-xs mt-1">
                                   Now Playing
                                 </Badge>
                               )}
@@ -1888,7 +2150,7 @@ export default function RoomPage() {
 
         {/* Share Dialog */}
         <Dialog open={showShare} onOpenChange={setShowShare}>
-          <DialogContent className="w-[95vw] max-w-md mx-auto">
+          <DialogContent className="w-[95vw] max-w-md mx-auto max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
                 <Share2 className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -1896,74 +2158,76 @@ export default function RoomPage() {
               </DialogTitle>
               <DialogDescription className="text-sm">Share this room with your friends</DialogDescription>
             </DialogHeader>
-            <div className="space-y-4 sm:space-y-6">
-              {/* Room Info */}
-              <div className="text-center">
-                <div className="bg-gray-50 p-3 sm:p-4 rounded-lg mb-4">
-                  <p className="text-xs sm:text-sm text-gray-600 mb-1">Room Name</p>
-                  <p className="text-base sm:text-lg font-semibold truncate">{room.room_name}</p>
-                  <p className="text-xs sm:text-sm text-gray-600 mt-2">Room ID</p>
-                  <p className="text-xl sm:text-2xl font-mono font-bold text-purple-600">{room.room_id}</p>
+            <ScrollArea className="max-h-[70vh] pr-2">
+              <div className="space-y-3 sm:space-y-4">
+                {/* Room Info */}
+                <div className="text-center">
+                  <div className="bg-gray-50 p-2 sm:p-3 rounded-lg">
+                    <p className="text-xs text-gray-600 mb-1">Room Name</p>
+                    <p className="text-sm sm:text-base font-semibold truncate">{room.room_name}</p>
+                    <p className="text-xs text-gray-600 mt-1">Room ID</p>
+                    <p className="text-lg sm:text-xl font-mono font-bold text-purple-600">{room.room_id}</p>
+                  </div>
                 </div>
-              </div>
 
-              {/* QR Code */}
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-2 mb-3">
-                  <QrCode className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span className="text-sm sm:text-base font-medium">QR Code</span>
+                {/* QR Code */}
+                <div className="text-center">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <QrCode className="h-4 w-4" />
+                    <span className="text-sm font-medium">QR Code</span>
+                  </div>
+                  <div className="bg-white p-2 sm:p-3 rounded-lg border inline-block">
+                    {generatingQr ? (
+                      <div className="w-24 h-24 sm:w-32 sm:h-32 flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-4 w-4 sm:h-6 sm:w-6 border-b-2 border-purple-600"></div>
+                      </div>
+                    ) : shareQrCode ? (
+                      <img
+                        src={shareQrCode || "/placeholder.svg"}
+                        alt="Room QR Code"
+                        className="w-24 h-24 sm:w-32 sm:h-32"
+                      />
+                    ) : (
+                      <div className="w-24 h-24 sm:w-32 sm:h-32 flex items-center justify-center text-gray-400">
+                        <QrCode className="h-6 w-6 sm:h-8 sm:w-8" />
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">Scan to join the room</p>
                 </div>
-                <div className="bg-white p-3 sm:p-4 rounded-lg border inline-block">
-                  {generatingQr ? (
-                    <div className="w-32 h-32 sm:w-48 sm:h-48 flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-purple-600"></div>
-                    </div>
-                  ) : shareQrCode ? (
-                    <img
-                      src={shareQrCode || "/placeholder.svg"}
-                      alt="Room QR Code"
-                      className="w-32 h-32 sm:w-48 sm:h-48"
-                    />
-                  ) : (
-                    <div className="w-32 h-32 sm:w-48 sm:h-48 flex items-center justify-center text-gray-400">
-                      <QrCode className="h-8 w-8 sm:h-12 sm:w-12" />
-                    </div>
-                  )}
-                </div>
-                <p className="text-xs text-gray-500 mt-2">Scan to join the room</p>
-              </div>
 
-              {/* Room Link */}
-              <div>
-                <div className="flex items-center justify-center gap-2 mb-3">
-                  <Copy className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span className="text-sm sm:text-base font-medium">Room Link</span>
+                {/* Room Link */}
+                <div>
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <Copy className="h-4 w-4" />
+                    <span className="text-sm font-medium">Room Link</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <Input value={`${window.location.origin}/room/${roomId}`} readOnly className="text-xs" />
+                    <Button onClick={copyRoomLink} size="sm" className="shrink-0">
+                      <Copy className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1 text-center">Share this link with friends to invite them</p>
                 </div>
-                <div className="flex gap-2">
-                  <Input value={`${window.location.origin}/room/${roomId}`} readOnly className="text-xs sm:text-sm" />
-                  <Button onClick={copyRoomLink} size="sm" className="shrink-0">
-                    <Copy className="h-3 w-3 sm:h-4 sm:w-4" />
-                  </Button>
-                </div>
-                <p className="text-xs text-gray-500 mt-2 text-center">Share this link with friends to invite them</p>
-              </div>
 
-              {/* Room Stats */}
-              <div className="bg-gray-50 p-3 rounded-lg">
-                <div className="flex justify-between text-xs sm:text-sm">
-                  <span className="text-gray-600">Active Users:</span>
-                  <span className="font-medium">{userCount}</span>
-                </div>
-                <div className="flex justify-between text-xs sm:text-sm mt-1">
-                  <span className="text-gray-600">Songs in Queue:</span>
-                  <span className="font-medium">{queue.length}</span>
-                </div>
-                <div className="flex justify-between text-xs sm:text-sm mt-1">
-                  <span className="text-gray-600">Expires in:</span>
-                  <span className="font-medium">{formatTimeRemaining(room.expires_at)}</span>
+                {/* Room Stats */}
+                <div className="bg-gray-50 p-2 sm:p-3 rounded-lg">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-600">Active Users:</span>
+                    <span className="font-medium">{userCount}</span>
+                  </div>
+                  <div className="flex justify-between text-xs mt-1">
+                    <span className="text-gray-600">Songs in Queue:</span>
+                    <span className="font-medium">{queue.length}</span>
+                  </div>
+                  <div className="flex justify-between text-xs mt-1">
+                    <span className="text-gray-600">Expires in:</span>
+                    <span className="font-medium">{formatTimeRemaining(room.expires_at)}</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            </ScrollArea>
           </DialogContent>
         </Dialog>
       </div>
