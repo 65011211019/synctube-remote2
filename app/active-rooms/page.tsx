@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Users, Clock, Lock, Music } from "lucide-react";
+import { Users, Clock, Lock, Music, Radio, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -69,7 +69,7 @@ export default function ActiveRoomsPage() {
       const { data: roomsData, error } = await supabase
         .from("rooms")
         .select("*")
-        .eq("active", 1)
+        .eq("active", true)
         .order("created_at", { ascending: false });
       if (error) throw error;
       const rawRooms: RawRoomData[] = (roomsData || []) as unknown as RawRoomData[];
@@ -132,74 +132,121 @@ export default function ActiveRoomsPage() {
         setPasswordDialog({ open: false, room: null });
         router.push(`/room/${passwordDialog.room.room_id}`);
       } else {
-        setPasswordError("รหัสผ่านไม่ถูกต้อง");
+        setPasswordError("Incorrect password");
       }
     } catch (e) {
-      setPasswordError("เกิดข้อผิดพลาด กรุณาลองใหม่");
+      setPasswordError("An error occurred. Please try again.");
     } finally {
       setPasswordLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-2 sm:p-4">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-8 px-2">
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2 flex items-center justify-center gap-2 flex-wrap">
-            <Users className="h-7 w-7 text-purple-600" />
-            <span>Active Rooms</span>
-          </h2>
-          <p className="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto">
-            Join a room and listen to YouTube music together in real-time.
+    <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
+      {/* Background decorations */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="hero-orb hero-orb-1" />
+        <div className="hero-orb hero-orb-2" />
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        {/* Header */}
+        <div className="text-center mb-10 animate-fade-in">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
+            <Radio className="h-4 w-4" />
+            <span>Live Rooms</span>
+          </div>
+
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-4 tracking-tight">
+            <span className="gradient-text">Active Rooms</span>
+          </h1>
+
+          <p className="text-base sm:text-lg text-muted-foreground max-w-xl mx-auto">
+            Join a room and listen to YouTube music together in real-time
           </p>
         </div>
-        <div className="px-2">
+
+        {/* Content */}
+        <div className="animate-slide-up">
           {loading ? (
-            <div className="text-center py-8">
-              <p className="text-gray-600 mt-2 text-sm sm:text-base">Loading rooms...</p>
+            <div className="text-center py-16">
+              <div className="inline-flex items-center gap-3 text-muted-foreground">
+                <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                <span className="text-lg">Loading rooms...</span>
+              </div>
             </div>
           ) : rooms.length === 0 || !isSupabaseConfigured ? (
-            <Card>
-              <CardContent className="text-center py-8">
-                <Music className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600 text-sm sm:text-base">No active rooms found</p>
-                <p className="text-xs sm:text-sm text-gray-500">Create a new room to get started!</p>
+            <Card className="max-w-md mx-auto border-2 border-dashed">
+              <CardContent className="text-center py-16">
+                <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mx-auto mb-6">
+                  <Music className="h-10 w-10 text-muted-foreground" />
+                </div>
+                <h3 className="text-xl font-bold mb-2">No Active Rooms</h3>
+                <p className="text-muted-foreground mb-6">Create a new room to get started!</p>
+                <Button
+                  onClick={() => router.push("/")}
+                  className="btn-gradient rounded-xl h-11 px-6"
+                >
+                  Create Room
+                </Button>
               </CardContent>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
-              {rooms.map((room) => (
-                <Card key={room.room_id} className="hover:shadow-lg transition-shadow cursor-pointer">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+              {rooms.map((room, index) => (
+                <Card
+                  key={room.room_id}
+                  className="group card-hover border-2 overflow-hidden animate-slide-up"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
                   <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
+                    <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">
-                        <CardTitle className="text-base sm:text-lg truncate">{room.room_name}</CardTitle>
-                        <CardDescription className="font-mono text-sm sm:text-lg font-bold text-purple-600">
+                        <CardTitle className="text-lg font-bold truncate group-hover:text-primary transition-colors">
+                          {room.room_name}
+                        </CardTitle>
+                        <CardDescription className="font-mono text-base font-bold text-primary mt-1">
                           {room.room_id}
                         </CardDescription>
                       </div>
-                      {room.password_hash && <Lock className="h-4 w-4 text-gray-500 shrink-0 ml-2" />}
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
-                        <Users className="h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
-                        <span>{room.user_count} active users</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
-                        <Clock className="h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
-                        <span>Expires in {formatTimeRemaining(room.expires_at)}</span>
-                      </div>
-                      {room.current_video && (
-                        <Badge variant="secondary" className="text-xs">
-                          <Music className="h-3 w-3 mr-1" />
-                          Playing music
-                        </Badge>
+                      {room.password_hash && (
+                        <div className="p-2 rounded-lg bg-muted shrink-0">
+                          <Lock className="h-4 w-4 text-muted-foreground" />
+                        </div>
                       )}
                     </div>
+                  </CardHeader>
+
+                  <CardContent className="pt-0">
+                    <div className="space-y-3 mb-4">
+                      <div className="flex items-center gap-2.5 text-sm">
+                        <div className="w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                          <Users className="h-4 w-4 text-green-600 dark:text-green-400" />
+                        </div>
+                        <span className="text-muted-foreground">
+                          <span className="font-semibold text-foreground">{room.user_count}</span> active users
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2.5 text-sm">
+                        <div className="w-8 h-8 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+                          <Clock className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                        </div>
+                        <span className="text-muted-foreground">
+                          Expires in <span className="font-semibold text-foreground">{formatTimeRemaining(room.expires_at)}</span>
+                        </span>
+                      </div>
+
+                      {room.current_video && (
+                        <div className="status-badge status-badge-live">
+                          <Music className="h-3 w-3" />
+                          <span>Playing music</span>
+                        </div>
+                      )}
+                    </div>
+
                     <Button
-                      className="w-full mt-4 bg-transparent text-sm"
+                      className="w-full font-semibold rounded-xl h-11 transition-all group-hover:btn-gradient"
                       variant="outline"
                       onClick={() => handleJoinRoom(room)}
                     >
@@ -212,29 +259,39 @@ export default function ActiveRoomsPage() {
           )}
         </div>
       </div>
+
+      {/* Password Dialog */}
       <Dialog open={passwordDialog.open} onOpenChange={open => setPasswordDialog(d => ({ ...d, open }))}>
-        <DialogContent className="max-w-sm mx-auto">
+        <DialogContent className="max-w-sm mx-auto animate-scale-in">
           <DialogHeader>
-            <DialogTitle>ใส่รหัสผ่านเพื่อเข้าห้อง</DialogTitle>
+            <DialogTitle className="text-xl font-bold">Enter Password</DialogTitle>
             <DialogDescription>
-              ห้อง <span className="font-bold">{passwordDialog.room?.room_name}</span>
+              Room: <span className="font-bold text-foreground">{passwordDialog.room?.room_name}</span>
             </DialogDescription>
           </DialogHeader>
-          <Input
-            type="password"
-            placeholder="รหัสผ่าน"
-            value={passwordInput}
-            onChange={e => setPasswordInput(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && verifyPassword()}
-            disabled={passwordLoading}
-            className="mb-2"
-          />
-          {passwordError && <p className="text-red-600 text-xs mb-2">{passwordError}</p>}
-          <Button onClick={verifyPassword} disabled={passwordLoading} className="w-full">
-            เข้าห้อง
-          </Button>
+          <div className="space-y-4 pt-2">
+            <Input
+              type="password"
+              placeholder="Enter room password"
+              value={passwordInput}
+              onChange={e => setPasswordInput(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && verifyPassword()}
+              disabled={passwordLoading}
+              className="h-12 text-center font-medium"
+            />
+            {passwordError && (
+              <p className="text-destructive text-sm text-center font-medium">{passwordError}</p>
+            )}
+            <Button
+              onClick={verifyPassword}
+              disabled={passwordLoading || !passwordInput}
+              className="w-full h-12 font-semibold btn-gradient rounded-xl"
+            >
+              {passwordLoading ? "Verifying..." : "Join Room"}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
   );
-} 
+}

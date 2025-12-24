@@ -14,7 +14,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Users, Clock, Lock, Music, Plus, LogIn, RefreshCw } from "lucide-react"
+import { Users, Clock, Lock, Music, Plus, LogIn, RefreshCw, Sparkles, Zap, Shield } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase"
 import { generateUserId, getUserId } from "@/lib/user"
@@ -123,7 +123,7 @@ export default function HomePage() {
             .from("rooms")
             .select("room_id")
             .eq("room_id", newRoomId)
-            .eq("active", 1)
+            .eq("active", true)
             .single()
 
           if (!existingRoom) {
@@ -166,7 +166,7 @@ export default function HomePage() {
       const { data: roomsData, error } = await supabase
         .from("rooms")
         .select("*")
-        .eq("active", 1)
+        .eq("active", true)
         .order("created_at", { ascending: false })
 
       // PostgREST returns 42P01 when the relation/table doesn't exist
@@ -224,6 +224,14 @@ export default function HomePage() {
 
     try {
       const userId = getUserId()
+      if (!userId) {
+        toast({
+          title: "Error",
+          description: "User ID not found. Please refresh the page.",
+          variant: "destructive",
+        })
+        return
+      }
       const expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000) // 2 hours from now
       const passwordHash = password ? await hashPassword(password) : null
 
@@ -252,7 +260,7 @@ export default function HomePage() {
       // Generate QR code
       const roomUrl = `${window.location.origin}/room/${roomId}`
       const qrCodeResult = await generateQRCode(roomUrl); // Get the result from the async function
-      
+
       // FIX 2: Check if qrCodeResult is actually a string before setting the state
       if (typeof qrCodeResult === 'string') {
         setQrCodeUrl(qrCodeResult);
@@ -309,7 +317,7 @@ export default function HomePage() {
         .from("rooms")
         .select("*")
         .eq("room_id", roomIdToJoin)
-        .eq("active", 1)
+        .eq("active", true)
         .single()
 
       if (error || !room) {
@@ -397,200 +405,241 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-2 sm:p-4">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8 px-2">
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-purple-600 mb-3 flex items-center justify-center gap-2 flex-wrap drop-shadow-lg">
-            <Music className="h-8 w-8 sm:h-10 sm:w-10 text-purple-600" />
-            <span>SyncTube Remote</span>
-          </h1>
-          <p className="text-base sm:text-lg text-gray-700 max-w-2xl mx-auto font-medium">
-            Share and listen to YouTube music with friends in real-time. Create private rooms, manage queues, vote to skip, and more.
-          </p>
-        </div>
+    <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
+      {/* Background decorations */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="hero-orb hero-orb-1" />
+        <div className="hero-orb hero-orb-2" />
+      </div>
 
-        {/* Action Buttons - Moved to top */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-10 justify-center px-2">
-          <Dialog open={createRoomOpen} onOpenChange={setCreateRoomOpen}>
-            <DialogTrigger asChild>
-              <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-white font-bold shadow-lg w-full sm:w-auto transition-all">
-                <Plus className="h-5 w-5 mr-2" />
-                Create Room
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="w-[95vw] max-w-md mx-auto">
-              <DialogHeader>
-                <DialogTitle className="text-lg sm:text-xl">Create New Room</DialogTitle>
-                <DialogDescription className="text-sm">
-                  Set up a new music room for you and your friends
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="roomId" className="text-sm font-medium">
-                    Room ID
-                  </Label>
-                  <div className="flex gap-2 mt-1">
-                    <Input
-                      id="roomId"
-                      value={roomId}
-                      readOnly
-                      className="font-mono text-base sm:text-lg font-bold text-center bg-gray-50"
-                      placeholder="Generating..."
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      onClick={generateNewRoomId}
-                      disabled={generatingRoomId}
-                      className="shrink-0 bg-transparent"
-                    >
-                      <RefreshCw className={`h-4 w-4 ${generatingRoomId ? "animate-spin" : ""}`} />
-                    </Button>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">Auto-generated 5-character room ID</p>
-                </div>
-                <div>
-                  <Label htmlFor="roomName" className="text-sm font-medium">
-                    Room Name *
-                  </Label>
-                  <Input
-                    id="roomName"
-                    value={roomName}
-                    onChange={(e) => setRoomName(e.target.value)}
-                    placeholder="Enter room name"
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="password" className="text-sm font-medium">
-                    Password (Optional)
-                  </Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Leave empty for no password"
-                    className="mt-1"
-                  />
-                </div>
-                <Button onClick={createRoom} className="w-full" disabled={!roomName.trim()}>
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        {/* Hero Section */}
+        <div className="text-center mb-12 sm:mb-16 animate-fade-in">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
+            <Sparkles className="h-4 w-4" />
+            <span>Real-time Music Sharing</span>
+          </div>
+
+          <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black mb-6 tracking-tight">
+            <span className="gradient-text">SyncTube</span>
+            <br />
+            <span className="text-foreground">Remote</span>
+          </h1>
+
+          <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 leading-relaxed">
+            Share and listen to YouTube music with friends in real-time.
+            Create private rooms, manage queues, vote to skip, and more.
+          </p>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Dialog open={createRoomOpen} onOpenChange={setCreateRoomOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  size="lg"
+                  className="btn-gradient h-14 px-8 text-lg rounded-2xl w-full sm:w-auto"
+                >
+                  <Plus className="h-5 w-5 mr-2" />
                   Create Room
                 </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+              </DialogTrigger>
+              <DialogContent className="w-[95vw] max-w-md mx-auto animate-scale-in">
+                <DialogHeader>
+                  <DialogTitle className="text-xl font-bold">Create New Room</DialogTitle>
+                  <DialogDescription>
+                    Set up a new music room for you and your friends
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-5 pt-2">
+                  <div>
+                    <Label htmlFor="roomId" className="text-sm font-semibold">
+                      Room ID
+                    </Label>
+                    <div className="flex gap-2 mt-2">
+                      <Input
+                        id="roomId"
+                        value={roomId}
+                        readOnly
+                        className="font-mono text-lg font-bold text-center bg-muted/50 border-2"
+                        placeholder="Generating..."
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={generateNewRoomId}
+                        disabled={generatingRoomId}
+                        className="shrink-0 h-11 w-11"
+                      >
+                        <RefreshCw className={`h-4 w-4 ${generatingRoomId ? "animate-spin" : ""}`} />
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1.5">Auto-generated 5-character room ID</p>
+                  </div>
+                  <div>
+                    <Label htmlFor="roomName" className="text-sm font-semibold">
+                      Room Name *
+                    </Label>
+                    <Input
+                      id="roomName"
+                      value={roomName}
+                      onChange={(e) => setRoomName(e.target.value)}
+                      placeholder="Enter room name"
+                      className="mt-2 h-11"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="password" className="text-sm font-semibold">
+                      Password (Optional)
+                    </Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Leave empty for no password"
+                      className="mt-2 h-11"
+                    />
+                  </div>
+                  <Button
+                    onClick={createRoom}
+                    className="w-full h-12 text-base font-semibold btn-gradient rounded-xl"
+                    disabled={!roomName.trim()}
+                  >
+                    Create Room
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
 
-          <Dialog open={joinRoomOpen} onOpenChange={setJoinRoomOpen}>
-            <DialogTrigger asChild>
-              <Button size="lg" variant="outline" className="w-full sm:w-auto bg-white border-2 border-purple-200 hover:border-purple-400 text-purple-700 font-bold shadow-sm transition-all">
-                <LogIn className="h-5 w-5 mr-2" />
-                Join Room
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="w-[95vw] max-w-md mx-auto">
-              <DialogHeader>
-                <DialogTitle className="text-lg sm:text-xl">Join Room</DialogTitle>
-                <DialogDescription className="text-sm">Enter room ID to join an existing music room</DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="joinRoomId" className="text-sm font-medium">
-                    Room ID
-                  </Label>
-                  <Input
-                    id="joinRoomId"
-                    value={joinRoomId}
-                    onChange={(e) => setJoinRoomId(e.target.value.toUpperCase())}
-                    placeholder="Enter 5-character room ID"
-                    maxLength={5}
-                    className="font-mono text-base sm:text-lg text-center mt-1"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="joinPassword" className="text-sm font-medium">
-                    Password (if required)
-                  </Label>
-                  <Input
-                    id="joinPassword"
-                    type="password"
-                    value={joinPassword}
-                    onChange={(e) => setJoinJoinPassword(e.target.value)} // Corrected typo here
-                    placeholder="Enter password"
-                    className="mt-1"
-                  />
-                </div>
-                <Button onClick={() => joinRoom()} className="w-full" disabled={joinRoomId.length !== 5}>
+            <Dialog open={joinRoomOpen} onOpenChange={setJoinRoomOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="h-14 px-8 text-lg rounded-2xl w-full sm:w-auto border-2 hover:bg-accent/50 transition-all"
+                >
+                  <LogIn className="h-5 w-5 mr-2" />
                   Join Room
                 </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
-
-        {/* Feature Highlights */}
-        <div className="max-w-4xl mx-auto mb-10">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div className="flex items-start gap-3 bg-white/90 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-shadow border border-purple-100">
-              <Music className="h-7 w-7 text-purple-600 mt-1" />
-              <div>
-                <div className="font-bold text-lg text-gray-900 mb-1">Listen Together in Real-Time</div>
-                <div className="text-sm text-gray-600">Create a room, share a link or QR code, and enjoy YouTube music with friends anywhere.</div>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 bg-white/90 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-shadow border border-purple-100">
-              <Users className="h-7 w-7 text-purple-600 mt-1" />
-              <div>
-                <div className="font-bold text-lg text-gray-900 mb-1">Queue Management & Skip Voting</div>
-                <div className="text-sm text-gray-600">Add, remove, and reorder songs in the queue. Vote to skip songs you don't want to hear.</div>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 bg-white/90 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-shadow border border-purple-100">
-              <Lock className="h-7 w-7 text-purple-600 mt-1" />
-              <div>
-                <div className="font-bold text-lg text-gray-900 mb-1">Private Rooms</div>
-                <div className="text-sm text-gray-600">Set a room password to keep your session private and secure.</div>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 bg-white/90 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-shadow border border-purple-100">
-              <Clock className="h-7 w-7 text-purple-600 mt-1" />
-              <div>
-                <div className="font-bold text-lg text-gray-900 mb-1">Auto-Expiring Rooms</div>
-                <div className="text-sm text-gray-600">Rooms are automatically deleted after expiration for privacy and resource efficiency.</div>
-              </div>
-            </div>
+              </DialogTrigger>
+              <DialogContent className="w-[95vw] max-w-md mx-auto animate-scale-in">
+                <DialogHeader>
+                  <DialogTitle className="text-xl font-bold">Join Room</DialogTitle>
+                  <DialogDescription>Enter room ID to join an existing music room</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-5 pt-2">
+                  <div>
+                    <Label htmlFor="joinRoomId" className="text-sm font-semibold">
+                      Room ID
+                    </Label>
+                    <Input
+                      id="joinRoomId"
+                      value={joinRoomId}
+                      onChange={(e) => setJoinRoomId(e.target.value.toUpperCase())}
+                      placeholder="Enter 5-character room ID"
+                      maxLength={5}
+                      className="font-mono text-lg text-center mt-2 h-12 border-2"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="joinPassword" className="text-sm font-semibold">
+                      Password (if required)
+                    </Label>
+                    <Input
+                      id="joinPassword"
+                      type="password"
+                      value={joinPassword}
+                      onChange={(e) => setJoinJoinPassword(e.target.value)}
+                      placeholder="Enter password"
+                      className="mt-2 h-11"
+                    />
+                  </div>
+                  <Button
+                    onClick={() => joinRoom()}
+                    className="w-full h-12 text-base font-semibold btn-gradient rounded-xl"
+                    disabled={joinRoomId.length !== 5}
+                  >
+                    Join Room
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
 
-
+        {/* Feature Highlights */}
+        <div className="max-w-5xl mx-auto mb-16">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            {[
+              {
+                icon: Music,
+                title: "Real-Time Sync",
+                description: "Listen together with friends anywhere in the world"
+              },
+              {
+                icon: Users,
+                title: "Queue System",
+                description: "Add, remove, and reorder songs collaboratively"
+              },
+              {
+                icon: Shield,
+                title: "Private Rooms",
+                description: "Password-protect your sessions for privacy"
+              },
+              {
+                icon: Zap,
+                title: "Vote Skip",
+                description: "Democratic control over what plays next"
+              }
+            ].map((feature, index) => (
+              <div
+                key={index}
+                className="feature-card card-hover animate-slide-up"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <div className="relative z-10">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+                    <feature.icon className="h-6 w-6 text-primary" />
+                  </div>
+                  <h3 className="font-bold text-lg mb-2">{feature.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{feature.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
 
         {/* QR Code Dialog */}
         <Dialog open={qrCodeOpen} onOpenChange={setQrCodeOpen}>
-          <DialogContent className="w-[95vw] max-w-md mx-auto">
+          <DialogContent className="w-[95vw] max-w-md mx-auto animate-scale-in">
             <DialogHeader>
-              <DialogTitle className="text-lg sm:text-xl">Room Created Successfully!</DialogTitle>
-              <DialogDescription className="text-sm">Share this QR code or room ID with your friends</DialogDescription>
+              <DialogTitle className="text-xl font-bold text-center">Room Created! 🎉</DialogTitle>
+              <DialogDescription className="text-center">Share this QR code or room ID with your friends</DialogDescription>
             </DialogHeader>
-            <div className="text-center space-y-4">
+            <div className="text-center space-y-6 py-4">
               {qrCodeUrl && (
                 <div className="flex justify-center">
-                  <img src={qrCodeUrl || "/placeholder.svg"} alt="QR Code" className="w-48 h-48 sm:w-56 sm:h-56" />
+                  <div className="p-4 bg-white rounded-2xl shadow-lg">
+                    <img src={qrCodeUrl || "/placeholder.svg"} alt="QR Code" className="w-48 h-48 sm:w-56 sm:h-56" />
+                  </div>
                 </div>
               )}
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600 mb-1">Room ID</p>
-                <p className="text-2xl sm:text-3xl font-mono font-bold text-purple-600">{createdRoomId}</p>
+              <div className="bg-muted/50 p-6 rounded-2xl">
+                <p className="text-sm text-muted-foreground mb-2">Room ID</p>
+                <p className="text-3xl sm:text-4xl font-mono font-black text-primary tracking-wider">{createdRoomId}</p>
               </div>
-              <Button onClick={() => router.push(`/room/${createdRoomId}`)} className="w-full">
+              <Button
+                onClick={() => router.push(`/room/${createdRoomId}`)}
+                className="w-full h-12 text-base font-semibold btn-gradient rounded-xl"
+              >
                 Enter Room
               </Button>
             </div>
           </DialogContent>
         </Dialog>
       </div>
+
       <Footer />
     </div>
   )

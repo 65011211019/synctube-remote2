@@ -9,7 +9,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       attribute="class"
       defaultTheme="light"
       enableSystem={false}
-      value={{ light: "light", dark: "dark", youtube: "youtube" }}
+      value={{ light: "light", dark: "dark", youtube: "youtube", avatar: "avatar", zootopia: "zootopia", harrypotter: "harrypotter" }}
     >
       {children}
     </NextThemesProvider>

@@ -2,8 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===== FONTS ===== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 @layer utilities {
@@ -12,134 +15,966 @@ body {
   }
 }
 
+/* ===== LIGHT THEME (Default) ===== */
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
+    --background: 220 20% 97%;
+    --foreground: 220 20% 10%;
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
+    --card-foreground: 220 20% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-    --chart-1: 12 76% 61%;
+    --popover-foreground: 220 20% 10%;
+    --primary: 262 83% 58%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 20% 20%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 10% 45%;
+    --accent: 262 83% 95%;
+    --accent-foreground: 262 83% 40%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 262 83% 58%;
+    --chart-1: 262 83% 58%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
+    --radius: 0.75rem;
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary: 262 83% 58%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-accent: 262 83% 95%;
+    --sidebar-accent-foreground: 262 83% 40%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 262 83% 58%;
+
+    /* Custom gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(262, 83%, 58%) 0%, hsl(280, 87%, 65%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(262, 83%, 95%) 0%, hsl(280, 87%, 95%) 100%);
+    --gradient-bg: linear-gradient(180deg, hsl(220, 20%, 97%) 0%, hsl(262, 30%, 96%) 100%);
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    --shadow-glow: 0 0 20px -5px hsl(262, 83%, 58%, 0.4);
   }
+
+  /* ===== DARK THEME ===== */
   .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
+    --background: 222 47% 6%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 262 83% 65%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 222 47% 14%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 222 47% 14%;
+    --muted-foreground: 215 20% 55%;
+    --accent: 262 50% 20%;
+    --accent-foreground: 262 83% 80%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 222 47% 18%;
+    --input: 222 47% 18%;
+    --ring: 262 83% 65%;
+    --chart-1: 262 83% 65%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-background: 222 47% 8%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 262 83% 65%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 262 50% 20%;
+    --sidebar-accent-foreground: 262 83% 80%;
+    --sidebar-border: 222 47% 18%;
+    --sidebar-ring: 262 83% 65%;
+
+    /* Custom gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(262, 83%, 60%) 0%, hsl(280, 87%, 70%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(262, 50%, 20%) 0%, hsl(280, 50%, 25%) 100%);
+    --gradient-bg: linear-gradient(180deg, hsl(222, 47%, 6%) 0%, hsl(262, 40%, 8%) 100%);
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+    --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+    --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.5), 0 8px 10px -6px rgb(0 0 0 / 0.4);
+    --shadow-glow: 0 0 30px -5px hsl(262, 83%, 65%, 0.3);
+  }
+
+  /* ===== YOUTUBE THEME ===== */
+  .youtube {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 6%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 6%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 6%;
+    --primary: 0 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 10%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 0 100% 95%;
+    --accent-foreground: 0 100% 40%;
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 0 100% 50%;
+    --chart-1: 0 100% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 0 0% 20%;
+    --sidebar-primary: 0 100% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 100% 95%;
+    --sidebar-accent-foreground: 0 100% 40%;
+    --sidebar-border: 0 0% 90%;
+    --sidebar-ring: 0 100% 50%;
+    --radius: 0.5rem;
+
+    /* Custom gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(0, 100%, 50%) 0%, hsl(15, 100%, 55%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(0, 100%, 95%) 0%, hsl(15, 100%, 95%) 100%);
+    --gradient-bg: linear-gradient(180deg, hsl(0, 0%, 100%) 0%, hsl(0, 0%, 98%) 100%);
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.06);
+    --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.06);
+    --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.08);
+    --shadow-glow: 0 0 20px -5px hsl(0, 100%, 50%, 0.3);
+  }
+
+  /* ===== AVATAR THEME ===== */
+  .avatar {
+    --background: 200 60% 95%;
+    --foreground: 200 80% 15%;
+    --card: 200 50% 98%;
+    --card-foreground: 200 80% 10%;
+    --popover: 200 50% 98%;
+    --popover-foreground: 200 80% 10%;
+    --primary: 200 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 45 100% 85%;
+    --secondary-foreground: 200 80% 15%;
+    --muted: 200 30% 92%;
+    --muted-foreground: 200 20% 45%;
+    --accent: 200 100% 90%;
+    --accent-foreground: 200 100% 40%;
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 200 30% 85%;
+    --input: 200 30% 85%;
+    --ring: 200 100% 50%;
+    --chart-1: 200 100% 50%;
+    --chart-2: 45 100% 50%;
+    --chart-3: 180 80% 40%;
+    --chart-4: 220 80% 60%;
+    --chart-5: 160 70% 45%;
+    --sidebar-background: 200 60% 98%;
+    --sidebar-foreground: 200 80% 15%;
+    --sidebar-primary: 200 100% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 45 100% 85%;
+    --sidebar-accent-foreground: 200 80% 15%;
+    --sidebar-border: 200 30% 85%;
+    --sidebar-ring: 200 100% 50%;
+    --radius: 1rem;
+
+    /* Custom gradients - Avatar inspired */
+    --gradient-primary: linear-gradient(135deg, hsl(200, 100%, 50%) 0%, hsl(180, 100%, 45%) 50%, hsl(45, 100%, 50%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(200, 100%, 90%) 0%, hsl(180, 100%, 85%) 50%, hsl(45, 100%, 85%) 100%);
+    --gradient-bg: linear-gradient(180deg, hsl(200, 60%, 95%) 0%, hsl(200, 50%, 90%) 100%);
+
+    /* Shadows - Avatar glow */
+    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px 0 rgb(0 0 0 / 0.06);
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.06);
+    --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.05);
+    --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 10px 10px -5px rgb(0 0 0 / 0.04);
+    --shadow-glow: 0 0 25px -8px hsl(200, 100%, 50%, 0.4), 0 0 50px -15px hsl(180, 100%, 45%, 0.2);
+  }
+
+  /* ===== ZOOTOPIA THEME ===== */
+  .zootopia {
+    --background: 210 50% 96%;
+    --foreground: 210 60% 10%;
+    --card: 210 40% 98%;
+    --card-foreground: 210 60% 8%;
+    --popover: 210 40% 98%;
+    --popover-foreground: 210 60% 8%;
+    --primary: 210 100% 45%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 35 100% 55%;
+    --secondary-foreground: 210 60% 10%;
+    --muted: 210 25% 92%;
+    --muted-foreground: 210 20% 45%;
+    --accent: 210 100% 85%;
+    --accent-foreground: 210 100% 35%;
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 210 25% 85%;
+    --input: 210 25% 85%;
+    --ring: 210 100% 45%;
+    --chart-1: 210 100% 45%;
+    --chart-2: 35 100% 55%;
+    --chart-3: 280 70% 60%;
+    --chart-4: 160 60% 45%;
+    --chart-5: 340 75% 55%;
+    --sidebar-background: 210 50% 98%;
+    --sidebar-foreground: 210 60% 10%;
+    --sidebar-primary: 210 100% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 35 100% 85%;
+    --sidebar-accent-foreground: 210 60% 10%;
+    --sidebar-border: 210 25% 85%;
+    --sidebar-ring: 210 100% 45%;
+    --radius: 0.8rem;
+
+    /* Custom gradients - Zootopia inspired */
+    --gradient-primary: linear-gradient(135deg, hsl(210, 100%, 45%) 0%, hsl(220, 90%, 50%) 50%, hsl(35, 100%, 55%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(210, 100%, 85%) 0%, hsl(220, 90%, 90%) 50%, hsl(35, 100%, 85%) 100%);
+    --gradient-bg: linear-gradient(180deg, hsl(210, 50%, 96%) 0%, hsl(210, 40%, 92%) 100%);
+
+    /* Shadows - Zootopia urban glow */
+    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px 0 rgb(0 0 0 / 0.06);
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.06);
+    --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.05);
+    --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 10px 10px -5px rgb(0 0 0 / 0.04);
+    --shadow-glow: 0 0 25px -8px hsl(210, 100%, 45%, 0.4), 0 0 50px -15px hsl(35, 100%, 55%, 0.2);
+  }
+
+  /* ===== HARRY POTTER THEME ===== */
+  .harrypotter {
+    --background: 240 25% 8%;
+    --foreground: 45 90% 90%;
+    --card: 240 30% 12%;
+    --card-foreground: 45 90% 92%;
+    --popover: 240 30% 10%;
+    --popover-foreground: 45 90% 92%;
+    --primary: 45 100% 50%;
+    --primary-foreground: 240 30% 8%;
+    --secondary: 0 75% 35%;
+    --secondary-foreground: 45 90% 95%;
+    --muted: 240 25% 18%;
+    --muted-foreground: 45 30% 60%;
+    --accent: 45 100% 25%;
+    --accent-foreground: 45 100% 85%;
+    --destructive: 0 80% 45%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 45 50% 25%;
+    --input: 240 30% 18%;
+    --ring: 45 100% 50%;
+    --chart-1: 45 100% 50%;
+    --chart-2: 0 75% 45%;
+    --chart-3: 270 60% 50%;
+    --chart-4: 180 60% 40%;
+    --chart-5: 120 50% 40%;
+    --sidebar-background: 240 30% 10%;
+    --sidebar-foreground: 45 90% 90%;
+    --sidebar-primary: 45 100% 50%;
+    --sidebar-primary-foreground: 240 30% 8%;
+    --sidebar-accent: 0 75% 35%;
+    --sidebar-accent-foreground: 45 90% 95%;
+    --sidebar-border: 45 50% 20%;
+    --sidebar-ring: 45 100% 50%;
+    --radius: 0.75rem;
+
+    /* Custom gradients - Harry Potter inspired */
+    --gradient-primary: linear-gradient(135deg, hsl(45, 100%, 50%) 0%, hsl(35, 100%, 45%) 50%, hsl(0, 75%, 40%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(45, 100%, 25%) 0%, hsl(0, 75%, 25%) 100%);
+    --gradient-bg: linear-gradient(180deg, hsl(240, 25%, 8%) 0%, hsl(260, 40%, 12%) 50%, hsl(240, 30%, 6%) 100%);
+
+    /* Shadows - Magical glow */
+    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.4), 0 1px 2px 0 rgb(0 0 0 / 0.3);
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -1px rgb(0 0 0 / 0.3);
+    --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -2px rgb(0 0 0 / 0.3);
+    --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.5), 0 10px 10px -5px rgb(0 0 0 / 0.4);
+    --shadow-glow: 0 0 30px -5px hsl(45, 100%, 50%, 0.5), 0 0 60px -10px hsl(0, 75%, 45%, 0.3);
   }
 }
 
-:root.youtube {
-  --background: 0 0% 100%;
-  --foreground: 0 0% 6%;
-  --card: 0 0% 100%;
-  --card-foreground: 0 0% 6%;
-  --primary: 0 100% 56%; /* YouTube Red */
-  --primary-foreground: 0 0% 100%;
-  --secondary: 0 0% 96%;
-  --secondary-foreground: 0 0% 10%;
-  --accent: 0 100% 56%; /* Red accent */
-  --accent-foreground: 0 0% 100%;
-  --muted: 0 0% 98%;
-  --muted-foreground: 0 0% 45%;
-  --border: 0 0% 90%;
-  --input: 0 0% 90%;
-  --ring: 0 100% 56%;
-  --radius: 0.75rem;
-  --shadow: 0 2px 16px 0 rgba(0,0,0,0.08);
-}
-:root.youtube body {
-  background: hsl(var(--background));
-  color: hsl(var(--foreground));
-}
-
-/* Card shadow for YouTube theme */
-:root.youtube .card, :root.youtube .bg-white, :root.youtube .bg-card {
-  box-shadow: var(--shadow);
-  border-radius: var(--radius);
-  border: 1px solid hsl(var(--border));
-}
-
-/* Button styles for YouTube theme */
-:root.youtube .btn, :root.youtube button, :root.youtube [class*="bg-primary"] {
-  background: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
-  border-radius: var(--radius);
-  border: none;
-  box-shadow: 0 1px 4px 0 rgba(0,0,0,0.10);
-}
-:root.youtube .btn-outline, :root.youtube button[variant="outline"] {
-  background: #fff;
-  color: hsl(var(--primary));
-  border: 1.5px solid hsl(var(--primary));
-}
-
-/* Accent for badges, etc. */
-:root.youtube .badge, :root.youtube .bg-accent {
-  background: hsl(var(--accent));
-  color: hsl(var(--accent-foreground));
-}
-
+/* ===== BASE STYLES ===== */
 @layer base {
   * {
     @apply border-border;
   }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
   }
+}
+
+/* ===== CUSTOM COMPONENTS ===== */
+@layer components {
+
+  /* Glass morphism effect */
+  .glass {
+    @apply bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl;
+  }
+
+  .youtube .glass {
+    @apply bg-white/90;
+  }
+
+  .avatar .glass {
+    @apply bg-blue-50/90 backdrop-blur-xl;
+  }
+
+  .zootopia .glass {
+    @apply bg-blue-50/90 backdrop-blur-xl;
+  }
+
+  .harrypotter .glass {
+    @apply backdrop-blur-xl;
+    background: rgba(30, 20, 50, 0.85);
+    border: 1px solid rgba(255, 200, 100, 0.2);
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-500;
+  }
+
+  .dark .gradient-text {
+    @apply from-purple-400 to-pink-400;
+  }
+
+  .youtube .gradient-text {
+    @apply from-red-500 to-orange-500;
+  }
+
+  .avatar .gradient-text {
+    @apply bg-gradient-to-r from-blue-500 via-cyan-500 to-yellow-500;
+  }
+
+  .zootopia .gradient-text {
+    @apply bg-gradient-to-r from-blue-600 via-purple-500 to-orange-500;
+  }
+
+  .harrypotter .gradient-text {
+    @apply bg-gradient-to-r from-yellow-400 via-amber-500 to-red-600;
+  }
+
+  /* Animated gradient background */
+  .animated-gradient {
+    background: linear-gradient(-45deg, hsl(262, 83%, 58%), hsl(280, 87%, 65%), hsl(200, 80%, 60%), hsl(262, 83%, 58%));
+    background-size: 400% 400%;
+    animation: gradient-shift 15s ease infinite;
+  }
+
+  .dark .animated-gradient {
+    background: linear-gradient(-45deg, hsl(262, 83%, 30%), hsl(280, 60%, 35%), hsl(200, 60%, 30%), hsl(262, 83%, 30%));
+    background-size: 400% 400%;
+  }
+
+  .youtube .animated-gradient {
+    background: linear-gradient(-45deg, hsl(0, 100%, 50%), hsl(15, 100%, 55%), hsl(350, 100%, 55%), hsl(0, 100%, 50%));
+    background-size: 400% 400%;
+  }
+
+  .avatar .animated-gradient {
+    background: linear-gradient(-45deg, hsl(200, 100%, 50%), hsl(180, 100%, 45%), hsl(45, 100%, 50%), hsl(200, 100%, 50%));
+    background-size: 400% 400%;
+  }
+
+  .zootopia .animated-gradient {
+    background: linear-gradient(-45deg, hsl(210, 100%, 45%), hsl(220, 90%, 50%), hsl(35, 100%, 55%), hsl(210, 100%, 45%));
+    background-size: 400% 400%;
+  }
+
+  .harrypotter .animated-gradient {
+    background: linear-gradient(-45deg, hsl(45, 100%, 50%), hsl(35, 100%, 45%), hsl(0, 75%, 40%), hsl(270, 60%, 30%), hsl(45, 100%, 50%));
+    background-size: 400% 400%;
+  }
+
+  @keyframes gradient-shift {
+    0% {
+      background-position: 0% 50%;
+    }
+
+    50% {
+      background-position: 100% 50%;
+    }
+
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  /* Pulse glow effect */
+  .pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow {
+
+    0%,
+    100% {
+      box-shadow: 0 0 5px hsl(var(--primary) / 0.2), 0 0 20px hsl(var(--primary) / 0.1);
+    }
+
+    50% {
+      box-shadow: 0 0 20px hsl(var(--primary) / 0.4), 0 0 40px hsl(var(--primary) / 0.2);
+    }
+  }
+
+  /* Card hover effect */
+  .card-hover {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  .card-hover:hover {
+    @apply -translate-y-1;
+    box-shadow: var(--shadow-lg), var(--shadow-glow);
+  }
+
+  /* Button gradient */
+  .btn-gradient {
+    background: var(--gradient-primary);
+    @apply text-white font-semibold shadow-lg transition-all duration-300;
+  }
+
+  .btn-gradient:hover {
+    @apply scale-105 shadow-xl;
+    filter: brightness(1.1);
+  }
+
+  .btn-gradient:active {
+    @apply scale-95;
+  }
+
+  /* Smooth scrollbar */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.3) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.3);
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
+  }
+
+  /* Feature card styling */
+  .feature-card {
+    @apply relative overflow-hidden rounded-2xl p-6 transition-all duration-300;
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+  }
+
+  .feature-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gradient-accent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .feature-card:hover::before {
+    opacity: 0.5;
+  }
+
+  .feature-card:hover {
+    border-color: hsl(var(--primary) / 0.3);
+    box-shadow: var(--shadow-md);
+  }
+
+  /* Hero gradient orbs */
+  .hero-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.5;
+    animation: float 8s ease-in-out infinite;
+  }
+
+  .hero-orb-1 {
+    width: 300px;
+    height: 300px;
+    background: hsl(var(--primary) / 0.4);
+    top: -100px;
+    left: -100px;
+  }
+
+  .hero-orb-2 {
+    width: 400px;
+    height: 400px;
+    background: hsl(280 87% 65% / 0.3);
+    bottom: -150px;
+    right: -150px;
+    animation-delay: -4s;
+  }
+
+  .dark .hero-orb {
+    opacity: 0.3;
+  }
+
+  .avatar .hero-orb-1 {
+    background: hsl(200 100% 50% / 0.4);
+  }
+
+  .avatar .hero-orb-2 {
+    background: hsl(45 100% 50% / 0.3);
+  }
+
+  .zootopia .hero-orb-1 {
+    background: hsl(210 100% 45% / 0.4);
+  }
+
+  .zootopia .hero-orb-2 {
+    background: hsl(35 100% 55% / 0.3);
+  }
+
+  .harrypotter .hero-orb-1 {
+    background: hsl(45 100% 50% / 0.5);
+    filter: blur(100px);
+  }
+
+  .harrypotter .hero-orb-2 {
+    background: hsl(270 60% 40% / 0.4);
+    filter: blur(120px);
+  }
+
+  @keyframes float {
+
+    0%,
+    100% {
+      transform: translate(0, 0) scale(1);
+    }
+
+    50% {
+      transform: translate(30px, -30px) scale(1.1);
+    }
+  }
+
+  /* Music wave animation */
+  .music-wave {
+    display: flex;
+    align-items: end;
+    gap: 3px;
+    height: 20px;
+  }
+
+  .music-wave span {
+    width: 3px;
+    background: hsl(var(--primary));
+    border-radius: 2px;
+    animation: wave 1s ease-in-out infinite;
+  }
+
+  .music-wave span:nth-child(1) {
+    animation-delay: 0s;
+    height: 60%;
+  }
+
+  .music-wave span:nth-child(2) {
+    animation-delay: 0.1s;
+    height: 100%;
+  }
+
+  .music-wave span:nth-child(3) {
+    animation-delay: 0.2s;
+    height: 40%;
+  }
+
+  .music-wave span:nth-child(4) {
+    animation-delay: 0.3s;
+    height: 80%;
+  }
+
+  .music-wave span:nth-child(5) {
+    animation-delay: 0.4s;
+    height: 50%;
+  }
+
+  @keyframes wave {
+
+    0%,
+    100% {
+      transform: scaleY(0.5);
+    }
+
+    50% {
+      transform: scaleY(1);
+    }
+  }
+
+  /* Status badge */
+  .status-badge {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium;
+  }
+
+  .status-badge-live {
+    @apply bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400;
+  }
+
+  .status-badge-live::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.5;
+    }
+  }
+}
+
+/* ===== ANIMATIONS ===== */
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.5s ease-out;
+  }
+
+  .animate-slide-in-right {
+    animation: slideInRight 0.3s ease-out;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideInRight {
+    from {
+      opacity: 0;
+      transform: translateX(20px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+}
+
+/* ===== HARRY POTTER MAGICAL EFFECTS ===== */
+
+/* Magic sparkles container - ดาวเวทมนต์ลอยขึ้น */
+.harrypotter .magic-sparkles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.harrypotter .magic-sparkle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: radial-gradient(circle, hsl(45, 100%, 70%) 0%, hsl(45, 100%, 50%) 50%, transparent 100%);
+  border-radius: 50%;
+  animation: sparkle-float 8s ease-in-out infinite;
+  box-shadow:
+    0 0 6px 2px hsl(45, 100%, 60%),
+    0 0 12px 4px hsl(45, 100%, 50%, 0.5);
+}
+
+.harrypotter .magic-sparkle:nth-child(1) {
+  left: 5%;
+  animation-delay: 0s;
+  animation-duration: 7s;
+}
+
+.harrypotter .magic-sparkle:nth-child(2) {
+  left: 15%;
+  animation-delay: 1s;
+  animation-duration: 9s;
+}
+
+.harrypotter .magic-sparkle:nth-child(3) {
+  left: 25%;
+  animation-delay: 2s;
+  animation-duration: 6s;
+}
+
+.harrypotter .magic-sparkle:nth-child(4) {
+  left: 35%;
+  animation-delay: 0.5s;
+  animation-duration: 8s;
+}
+
+.harrypotter .magic-sparkle:nth-child(5) {
+  left: 45%;
+  animation-delay: 3s;
+  animation-duration: 7s;
+}
+
+.harrypotter .magic-sparkle:nth-child(6) {
+  left: 55%;
+  animation-delay: 1.5s;
+  animation-duration: 10s;
+}
+
+.harrypotter .magic-sparkle:nth-child(7) {
+  left: 65%;
+  animation-delay: 2.5s;
+  animation-duration: 6s;
+}
+
+.harrypotter .magic-sparkle:nth-child(8) {
+  left: 75%;
+  animation-delay: 0.8s;
+  animation-duration: 9s;
+}
+
+.harrypotter .magic-sparkle:nth-child(9) {
+  left: 85%;
+  animation-delay: 3.5s;
+  animation-duration: 7s;
+}
+
+.harrypotter .magic-sparkle:nth-child(10) {
+  left: 95%;
+  animation-delay: 1.2s;
+  animation-duration: 8s;
+}
+
+@keyframes sparkle-float {
+  0% {
+    bottom: -20px;
+    opacity: 0;
+    transform: translateX(0) scale(0.5);
+  }
+
+  10% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.8;
+    transform: translateX(30px) scale(1.2);
+  }
+
+  90% {
+    opacity: 0.3;
+    transform: translateX(-20px) scale(0.8);
+  }
+
+  100% {
+    bottom: 100vh;
+    opacity: 0;
+    transform: translateX(10px) scale(0.3);
+  }
+}
+
+/* Magic wand glow effect */
+.harrypotter .magic-glow {
+  position: relative;
+}
+
+.harrypotter .magic-glow::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(45deg,
+      hsl(45, 100%, 50%) 0%,
+      hsl(35, 100%, 45%) 25%,
+      hsl(0, 75%, 45%) 50%,
+      hsl(270, 60%, 45%) 75%,
+      hsl(45, 100%, 50%) 100%);
+  background-size: 300% 300%;
+  animation: magic-border 3s ease infinite;
+  border-radius: inherit;
+  z-index: -1;
+  filter: blur(8px);
+  opacity: 0.6;
+}
+
+@keyframes magic-border {
+
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Lightning bolt flash effect - ฟ้าผ่าแฮร์รี่ */
+.harrypotter .lightning-flash {
+  animation: lightning 4s ease-in-out infinite;
+}
+
+@keyframes lightning {
+
+  0%,
+  95%,
+  100% {
+    opacity: 0;
+  }
+
+  96%,
+  98% {
+    opacity: 0.8;
+  }
+
+  97%,
+  99% {
+    opacity: 0;
+  }
+}
+
+/* Magical card styling for Harry Potter */
+.harrypotter .card,
+.harrypotter [data-slot="card"] {
+  background: linear-gradient(145deg,
+      hsl(240, 30%, 12%) 0%,
+      hsl(260, 35%, 10%) 50%,
+      hsl(240, 25%, 8%) 100%);
+  border: 1px solid hsl(45, 60%, 30%, 0.4);
+  box-shadow:
+    inset 0 1px 0 hsl(45, 100%, 50%, 0.1),
+    0 4px 20px hsl(0, 0%, 0%, 0.4),
+    0 0 40px hsl(45, 100%, 50%, 0.1);
+}
+
+.harrypotter .card:hover,
+.harrypotter [data-slot="card"]:hover {
+  border-color: hsl(45, 80%, 45%, 0.6);
+  box-shadow:
+    inset 0 1px 0 hsl(45, 100%, 50%, 0.2),
+    0 8px 30px hsl(0, 0%, 0%, 0.5),
+    0 0 60px hsl(45, 100%, 50%, 0.2);
+}
+
+/* Magical button styling */
+.harrypotter .btn-gradient,
+.harrypotter button[class*="primary"] {
+  background: linear-gradient(135deg,
+      hsl(45, 100%, 45%) 0%,
+      hsl(35, 100%, 40%) 50%,
+      hsl(25, 90%, 35%) 100%);
+  color: hsl(240, 30%, 8%);
+  font-weight: 600;
+  text-shadow: 0 1px 0 hsl(45, 100%, 70%, 0.3);
+  box-shadow:
+    0 2px 10px hsl(45, 100%, 50%, 0.3),
+    inset 0 1px 0 hsl(45, 100%, 70%, 0.3);
+}
+
+.harrypotter .btn-gradient:hover,
+.harrypotter button[class*="primary"]:hover {
+  background: linear-gradient(135deg,
+      hsl(45, 100%, 55%) 0%,
+      hsl(35, 100%, 50%) 50%,
+      hsl(25, 90%, 45%) 100%);
+  box-shadow:
+    0 4px 20px hsl(45, 100%, 50%, 0.5),
+    inset 0 1px 0 hsl(45, 100%, 80%, 0.4);
+}
+
+/* Hogwarts-style scrollbar */
+.harrypotter ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.harrypotter ::-webkit-scrollbar-track {
+  background: hsl(240, 25%, 10%);
+  border-radius: 4px;
+}
+
+.harrypotter ::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, hsl(45, 80%, 40%) 0%, hsl(35, 70%, 30%) 100%);
+  border-radius: 4px;
+  border: 1px solid hsl(45, 60%, 25%);
+}
+
+.harrypotter ::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, hsl(45, 90%, 50%) 0%, hsl(35, 80%, 40%) 100%);
+}
+
+/* Parchment texture overlay */
+.harrypotter body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 30%, hsl(45, 100%, 50%, 0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 70%, hsl(270, 60%, 40%, 0.05) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, hsl(0, 75%, 40%, 0.02) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
 }
