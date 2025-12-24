@@ -143,32 +143,18 @@ export default function RoomPage() {
     isHostRef.current = isHost
   }, [isHost])
 
-  // Handle page visibility changes for sync
+  // Handle page visibility changes (no auto-sync - guests must press Sync button manually)
   useEffect(() => {
     const handleVisibilityChange = () => {
       const isVisible = !document.hidden
       isPageVisibleRef.current = isVisible
-
-      if (isVisible && !isHostRef.current) {
-        // Page became visible and user is not host - sync with current state
-        console.log('🔄 Page became visible - syncing with host...')
-        syncWithHost()
-      }
-    }
-
-    const handleFocus = () => {
-      if (!isHostRef.current) {
-        console.log('🔄 Window focused - syncing with host...')
-        syncWithHost()
-      }
+      // No auto-sync - guests must manually press Sync button
     }
 
     document.addEventListener('visibilitychange', handleVisibilityChange)
-    window.addEventListener('focus', handleFocus)
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
-      window.removeEventListener('focus', handleFocus)
       if (syncTimeoutRef.current) {
         clearTimeout(syncTimeoutRef.current)
       }
@@ -269,25 +255,11 @@ export default function RoomPage() {
       setLastVideoId(videoToPlay)
       loadVideoInPlayer(videoToPlay, room.current_position || 0, room.is_playing)
     } else if (videoToPlay === lastVideoId && playerRef.current) {
-      // Same video, sync position and play/pause state
-      console.log("Syncing play state:", room.is_playing, "Position:", room.current_position)
+      // Same video - only sync play/pause state (position sync is manual via Sync button for guests)
+      console.log("Syncing play state:", room.is_playing)
 
-      // For non-host users, always sync position to avoid drift
-      if (!isHost && room.current_position !== undefined) {
-        const currentTime = getCurrentTimeSafe()
-        const timeDiff = Math.abs(currentTime - room.current_position)
-
-        // Sync if time difference is more than 2 seconds
-        if (timeDiff > 2) {
-          console.log(`🔄 Time drift detected: ${timeDiff.toFixed(1)}s - syncing position to ${room.current_position}s`)
-          try {
-            playerRef.current.seekTo(room.current_position, true)
-          } catch (error) {
-            console.warn('Error seeking to position:', error)
-          }
-        }
-      }
-
+      // No auto-position sync for guests - they must press Sync button manually
+      // Only sync play/pause state
       if (room.is_playing) {
         playerRef.current.playVideo()
       } else {
@@ -551,17 +523,7 @@ export default function RoomPage() {
         }
       }
 
-      // For non-host users, perform periodic sync every 30 seconds if page is visible
-      if (!isHostRef.current && isPageVisibleRef.current && roomRef.current?.current_video) {
-        // Only sync occasionally to avoid too much network traffic
-        const now = Date.now()
-        const timeSinceLastSync = now - lastSyncTimeRef.current
-
-        if (timeSinceLastSync > 30000) { // 30 seconds
-          console.log('🔄 Periodic sync check...')
-          syncWithHost()
-        }
-      }
+      // No auto-sync for guests - they must press Sync button manually
     }, 15000)
   }
 
@@ -602,21 +564,7 @@ export default function RoomPage() {
 
             setRoom(newRoom)
 
-            // For non-host users, if this is a position update while playing, ensure we're in sync
-            if (!isHostRef.current && newRoom.is_playing && playerRef.current && isPageVisibleRef.current) {
-              const currentTime = getCurrentTimeSafe()
-              const expectedTime = newRoom.current_position || 0
-              const timeDiff = Math.abs(currentTime - expectedTime)
-
-              if (timeDiff > 3) {
-                console.log(`🔄 Real-time sync: adjusting position by ${timeDiff.toFixed(1)}s`)
-                try {
-                  playerRef.current.seekTo(expectedTime, true)
-                } catch (error) {
-                  console.warn('Error seeking during real-time sync:', error)
-                }
-              }
-            }
+            // No auto-position sync for guests - they must press Sync button manually
           }
         },
       )
