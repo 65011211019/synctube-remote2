@@ -212,52 +212,53 @@ body {
   }
 
   /* ===== ZOOTOPIA THEME ===== */
+  /* Warm sunset cityscape with golden hour lighting */
   .zootopia {
-    --background: 210 50% 96%;
-    --foreground: 210 60% 10%;
-    --card: 210 40% 98%;
-    --card-foreground: 210 60% 8%;
-    --popover: 210 40% 98%;
-    --popover-foreground: 210 60% 8%;
-    --primary: 210 100% 45%;
+    --background: 30 30% 95%;
+    --foreground: 25 40% 15%;
+    --card: 35 25% 97%;
+    --card-foreground: 25 45% 12%;
+    --popover: 35 25% 97%;
+    --popover-foreground: 25 45% 12%;
+    --primary: 28 95% 50%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 35 100% 55%;
-    --secondary-foreground: 210 60% 10%;
-    --muted: 210 25% 92%;
-    --muted-foreground: 210 20% 45%;
-    --accent: 210 100% 85%;
-    --accent-foreground: 210 100% 35%;
+    --secondary: 145 50% 40%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 30 20% 90%;
+    --muted-foreground: 25 20% 45%;
+    --accent: 180 60% 45%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 70% 50%;
     --destructive-foreground: 0 0% 100%;
-    --border: 210 25% 85%;
-    --input: 210 25% 85%;
-    --ring: 210 100% 45%;
-    --chart-1: 210 100% 45%;
-    --chart-2: 35 100% 55%;
-    --chart-3: 280 70% 60%;
-    --chart-4: 160 60% 45%;
-    --chart-5: 340 75% 55%;
-    --sidebar-background: 210 50% 98%;
-    --sidebar-foreground: 210 60% 10%;
-    --sidebar-primary: 210 100% 45%;
+    --border: 30 25% 82%;
+    --input: 30 25% 85%;
+    --ring: 28 95% 50%;
+    --chart-1: 28 95% 50%;
+    --chart-2: 145 50% 45%;
+    --chart-3: 180 60% 45%;
+    --chart-4: 200 70% 55%;
+    --chart-5: 45 90% 55%;
+    --sidebar-background: 30 30% 96%;
+    --sidebar-foreground: 25 40% 15%;
+    --sidebar-primary: 28 95% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 35 100% 85%;
-    --sidebar-accent-foreground: 210 60% 10%;
-    --sidebar-border: 210 25% 85%;
-    --sidebar-ring: 210 100% 45%;
-    --radius: 0.8rem;
+    --sidebar-accent: 145 50% 85%;
+    --sidebar-accent-foreground: 145 50% 25%;
+    --sidebar-border: 30 25% 82%;
+    --sidebar-ring: 28 95% 50%;
+    --radius: 1rem;
 
-    /* Custom gradients - Zootopia inspired */
-    --gradient-primary: linear-gradient(135deg, hsl(210, 100%, 45%) 0%, hsl(220, 90%, 50%) 50%, hsl(35, 100%, 55%) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(210, 100%, 85%) 0%, hsl(220, 90%, 90%) 50%, hsl(35, 100%, 85%) 100%);
-    --gradient-bg: linear-gradient(180deg, hsl(210, 50%, 96%) 0%, hsl(210, 40%, 92%) 100%);
+    /* Custom gradients - Zootopia warm sunset inspired */
+    --gradient-primary: linear-gradient(135deg, hsl(35, 100%, 55%) 0%, hsl(25, 95%, 50%) 50%, hsl(145, 50%, 45%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(35, 90%, 85%) 0%, hsl(28, 95%, 80%) 50%, hsl(145, 50%, 85%) 100%);
+    --gradient-bg: linear-gradient(180deg, hsl(30, 40%, 95%) 0%, hsl(35, 30%, 92%) 100%);
 
-    /* Shadows - Zootopia urban glow */
-    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px 0 rgb(0 0 0 / 0.06);
-    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.06);
-    --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.05);
-    --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 10px 10px -5px rgb(0 0 0 / 0.04);
-    --shadow-glow: 0 0 25px -8px hsl(210, 100%, 45%, 0.4), 0 0 50px -15px hsl(35, 100%, 55%, 0.2);
+    /* Shadows - Warm golden glow */
+    --shadow-sm: 0 1px 3px 0 rgb(139 90 43 / 0.1), 0 1px 2px 0 rgb(139 90 43 / 0.06);
+    --shadow: 0 4px 6px -1px rgb(139 90 43 / 0.12), 0 2px 4px -1px rgb(139 90 43 / 0.08);
+    --shadow-md: 0 10px 15px -3px rgb(139 90 43 / 0.12), 0 4px 6px -2px rgb(139 90 43 / 0.08);
+    --shadow-lg: 0 20px 25px -5px rgb(139 90 43 / 0.15), 0 10px 10px -5px rgb(139 90 43 / 0.1);
+    --shadow-glow: 0 0 30px -8px hsl(28, 95%, 50%, 0.5), 0 0 60px -15px hsl(35, 100%, 55%, 0.3);
   }
 
   /* ===== HARRY POTTER THEME ===== */
@@ -338,7 +339,9 @@ body {
   }
 
   .zootopia .glass {
-    @apply bg-blue-50/90 backdrop-blur-xl;
+    @apply backdrop-blur-xl;
+    background: rgba(255, 248, 240, 0.88);
+    border: 1px solid rgba(200, 140, 80, 0.2);
   }
 
   .harrypotter .glass {
@@ -365,7 +368,7 @@ body {
   }
 
   .zootopia .gradient-text {
-    @apply bg-gradient-to-r from-blue-600 via-purple-500 to-orange-500;
+    @apply bg-gradient-to-r from-orange-500 via-amber-500 to-emerald-500;
   }
 
   .harrypotter .gradient-text {
@@ -395,7 +398,7 @@ body {
   }
 
   .zootopia .animated-gradient {
-    background: linear-gradient(-45deg, hsl(210, 100%, 45%), hsl(220, 90%, 50%), hsl(35, 100%, 55%), hsl(210, 100%, 45%));
+    background: linear-gradient(-45deg, hsl(35, 100%, 55%), hsl(28, 95%, 50%), hsl(145, 50%, 45%), hsl(180, 60%, 45%), hsl(35, 100%, 55%));
     background-size: 400% 400%;
   }
 
@@ -548,11 +551,13 @@ body {
   }
 
   .zootopia .hero-orb-1 {
-    background: hsl(210 100% 45% / 0.4);
+    background: hsl(35 100% 55% / 0.4);
+    filter: blur(100px);
   }
 
   .zootopia .hero-orb-2 {
-    background: hsl(35 100% 55% / 0.3);
+    background: hsl(145 50% 45% / 0.3);
+    filter: blur(100px);
   }
 
   .harrypotter .hero-orb-1 {
@@ -977,4 +982,451 @@ body {
     radial-gradient(ellipse at 50% 50%, hsl(0, 75%, 40%, 0.02) 0%, transparent 70%);
   pointer-events: none;
   z-index: 0;
+}
+
+/* ===== ZOOTOPIA CITY EFFECTS ===== */
+
+/* Zootopia card styling - warm sunset urban look */
+.zootopia .card,
+.zootopia [data-slot="card"] {
+  background: linear-gradient(145deg,
+      rgba(255, 252, 248, 0.95) 0%,
+      rgba(255, 248, 240, 0.92) 50%,
+      rgba(252, 250, 245, 0.95) 100%);
+  border: 1px solid rgba(200, 140, 80, 0.25);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 4px 20px rgba(139, 90, 43, 0.12),
+    0 0 40px rgba(255, 180, 100, 0.08);
+}
+
+.zootopia .card:hover,
+.zootopia [data-slot="card"]:hover {
+  border-color: rgba(200, 140, 80, 0.4);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 8px 30px rgba(139, 90, 43, 0.18),
+    0 0 60px rgba(255, 180, 100, 0.12);
+}
+
+/* Zootopia button styling - warm gradients */
+.zootopia .btn-gradient,
+.zootopia button[class*="primary"] {
+  background: linear-gradient(135deg,
+      hsl(35, 100%, 55%) 0%,
+      hsl(28, 95%, 50%) 50%,
+      hsl(22, 90%, 48%) 100%);
+  color: white;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(139, 90, 43, 0.3);
+  box-shadow:
+    0 2px 10px rgba(255, 150, 50, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.zootopia .btn-gradient:hover,
+.zootopia button[class*="primary"]:hover {
+  background: linear-gradient(135deg,
+      hsl(35, 100%, 60%) 0%,
+      hsl(28, 95%, 55%) 50%,
+      hsl(22, 90%, 52%) 100%);
+  box-shadow:
+    0 4px 20px rgba(255, 150, 50, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+/* Secondary buttons - tropical green */
+.zootopia button[class*="secondary"] {
+  background: linear-gradient(135deg,
+      hsl(145, 50%, 45%) 0%,
+      hsl(150, 45%, 40%) 100%);
+  color: white;
+  border: none;
+}
+
+.zootopia button[class*="secondary"]:hover {
+  background: linear-gradient(135deg,
+      hsl(145, 55%, 50%) 0%,
+      hsl(150, 50%, 45%) 100%);
+}
+
+/* Zootopia-style scrollbar */
+.zootopia ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.zootopia ::-webkit-scrollbar-track {
+  background: rgba(255, 248, 240, 0.6);
+  border-radius: 4px;
+}
+
+.zootopia ::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, hsl(28, 80%, 55%) 0%, hsl(35, 70%, 50%) 100%);
+  border-radius: 4px;
+  border: 1px solid rgba(200, 140, 80, 0.3);
+}
+
+.zootopia ::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, hsl(28, 90%, 60%) 0%, hsl(35, 80%, 55%) 100%);
+}
+
+/* Zootopia warm sunset texture overlay */
+.zootopia body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 15% 25%, hsl(35, 100%, 60%, 0.04) 0%, transparent 45%),
+    radial-gradient(ellipse at 85% 75%, hsl(145, 50%, 50%, 0.03) 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 50%, hsl(180, 60%, 50%, 0.02) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Train animation effect - subtle */
+.zootopia .train-glow {
+  position: relative;
+}
+
+.zootopia .train-glow::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(90deg,
+      hsl(35, 100%, 55%) 0%,
+      hsl(28, 95%, 50%) 50%,
+      hsl(145, 50%, 45%) 100%);
+  background-size: 200% 200%;
+  animation: train-border 4s ease infinite;
+  border-radius: inherit;
+  z-index: -1;
+  filter: blur(6px);
+  opacity: 0.5;
+}
+
+@keyframes train-border {
+
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* ===== AVATAR THEME BACKGROUND IMAGE ===== */
+html.avatar {
+  background-image: url('/bg_avatar.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+html.avatar body {
+  background: transparent;
+}
+
+/* Make all bg-background elements transparent for Avatar theme */
+html.avatar .bg-background,
+html.avatar [class*="bg-background"] {
+  background-color: transparent !important;
+}
+
+/* Keep navbar slightly visible */
+html.avatar nav.bg-background\/80 {
+  background-color: hsl(200, 60%, 95%, 0.85) !important;
+}
+
+/* Avatar overlay for better text readability */
+html.avatar::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(180deg,
+      hsl(200, 60%, 95%, 0.25) 0%,
+      hsl(200, 50%, 90%, 0.2) 50%,
+      hsl(200, 60%, 95%, 0.25) 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Avatar bioluminescent glow effects */
+.avatar .bioluminescent-glow {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.avatar .glow-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(40px);
+  animation: bio-float 10s ease-in-out infinite;
+}
+
+.avatar .glow-orb:nth-child(1) {
+  width: 200px;
+  height: 200px;
+  background: hsl(180, 100%, 50%, 0.15);
+  top: 10%;
+  left: 5%;
+  animation-delay: 0s;
+}
+
+.avatar .glow-orb:nth-child(2) {
+  width: 150px;
+  height: 150px;
+  background: hsl(200, 100%, 60%, 0.12);
+  top: 60%;
+  right: 10%;
+  animation-delay: -3s;
+}
+
+.avatar .glow-orb:nth-child(3) {
+  width: 100px;
+  height: 100px;
+  background: hsl(45, 100%, 50%, 0.1);
+  bottom: 20%;
+  left: 30%;
+  animation-delay: -5s;
+}
+
+@keyframes bio-float {
+
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.6;
+  }
+
+  25% {
+    transform: translate(20px, -30px) scale(1.1);
+    opacity: 0.8;
+  }
+
+  50% {
+    transform: translate(-10px, -60px) scale(0.9);
+    opacity: 0.5;
+  }
+
+  75% {
+    transform: translate(-30px, -20px) scale(1.05);
+    opacity: 0.7;
+  }
+}
+
+/* ===== HARRY POTTER THEME BACKGROUND IMAGE ===== */
+html.harrypotter {
+  background-image: url('/harry.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+html.harrypotter body {
+  background: transparent;
+}
+
+/* Make all bg-background elements transparent for Harry Potter theme */
+html.harrypotter .bg-background,
+html.harrypotter [class*="bg-background"] {
+  background-color: transparent !important;
+}
+
+/* Keep navbar slightly visible with magical dark look */
+html.harrypotter nav.bg-background\/80 {
+  background-color: hsl(240, 25%, 8%, 0.9) !important;
+}
+
+/* Harry Potter overlay for better text readability - magical dark atmosphere */
+html.harrypotter::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(180deg,
+      hsl(240, 30%, 10%, 0.25) 0%,
+      hsl(240, 25%, 8%, 0.2) 50%,
+      hsl(240, 30%, 10%, 0.25) 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Harry Potter magical glow effects */
+.harrypotter .magical-glow {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.harrypotter .magic-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(50px);
+  animation: magic-float 12s ease-in-out infinite;
+}
+
+.harrypotter .magic-orb:nth-child(1) {
+  width: 180px;
+  height: 180px;
+  background: hsl(45, 100%, 50%, 0.12);
+  top: 15%;
+  left: 8%;
+  animation-delay: 0s;
+}
+
+.harrypotter .magic-orb:nth-child(2) {
+  width: 140px;
+  height: 140px;
+  background: hsl(0, 75%, 40%, 0.1);
+  top: 55%;
+  right: 12%;
+  animation-delay: -4s;
+}
+
+.harrypotter .magic-orb:nth-child(3) {
+  width: 100px;
+  height: 100px;
+  background: hsl(270, 60%, 50%, 0.08);
+  bottom: 25%;
+  left: 25%;
+  animation-delay: -7s;
+}
+
+@keyframes magic-float {
+
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.5;
+  }
+
+  25% {
+    transform: translate(15px, -25px) scale(1.08);
+    opacity: 0.7;
+  }
+
+  50% {
+    transform: translate(-8px, -50px) scale(0.92);
+    opacity: 0.4;
+  }
+
+  75% {
+    transform: translate(-25px, -15px) scale(1.03);
+    opacity: 0.6;
+  }
+}
+
+/* ===== ZOOTOPIA THEME BACKGROUND IMAGE ===== */
+html.zootopia {
+  background-image: url('/zootopia.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+html.zootopia body {
+  background: transparent;
+}
+
+/* Make all bg-background elements transparent for Zootopia theme */
+html.zootopia .bg-background,
+html.zootopia [class*="bg-background"] {
+  background-color: transparent !important;
+}
+
+/* Keep navbar slightly visible with warm urban look */
+html.zootopia nav.bg-background\/80 {
+  background-color: rgba(255, 248, 240, 0.9) !important;
+  border-bottom: 1px solid rgba(200, 140, 80, 0.2);
+}
+
+/* Zootopia overlay for better text readability - warm sunset atmosphere */
+html.zootopia::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(180deg,
+      rgba(255, 248, 240, 0.2) 0%,
+      rgba(255, 235, 210, 0.15) 30%,
+      rgba(240, 255, 245, 0.1) 70%,
+      rgba(255, 248, 240, 0.2) 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Zootopia warm sunset glow effects */
+.zootopia .urban-glow {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.zootopia .city-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  animation: city-float 12s ease-in-out infinite;
+}
+
+.zootopia .city-orb:nth-child(1) {
+  width: 300px;
+  height: 300px;
+  background: hsl(35, 100%, 60%, 0.18);
+  top: 10%;
+  left: 5%;
+  animation-delay: 0s;
+}
+
+.zootopia .city-orb:nth-child(2) {
+  width: 250px;
+  height: 250px;
+  background: hsl(145, 50%, 50%, 0.12);
+  top: 60%;
+  right: 10%;
+  animation-delay: -4s;
+}
+
+.zootopia .city-orb:nth-child(3) {
+  width: 200px;
+  height: 200px;
+  background: hsl(180, 60%, 50%, 0.1);
+  bottom: 20%;
+  left: 40%;
+  animation-delay: -8s;
+}
+
+@keyframes city-float {
+
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.6;
+  }
+
+  25% {
+    transform: translate(20px, -30px) scale(1.1);
+    opacity: 0.8;
+  }
+
+  50% {
+    transform: translate(-10px, -60px) scale(0.9);
+    opacity: 0.5;
+  }
+
+  75% {
+    transform: translate(-30px, -20px) scale(1.05);
+    opacity: 0.7;
+  }
 }

@@ -11,21 +11,44 @@ export default function MagicSparkles() {
         setMounted(true);
     }, []);
 
-    // Only show sparkles for Harry Potter theme
-    if (!mounted || theme !== "harrypotter") return null;
+    // Show effects for specific themes
+    if (!mounted) return null;
 
-    return (
-        <div className="magic-sparkles" aria-hidden="true">
-            {/* Magic sparkle particles */}
-            {[...Array(10)].map((_, i) => (
-                <div key={i} className="magic-sparkle" />
-            ))}
+    if (theme === "harrypotter") {
+        return (
+            <div className="magic-sparkles" aria-hidden="true">
+                {/* Magic sparkle particles */}
+                {[...Array(10)].map((_, i) => (
+                    <div key={i} className="magic-sparkle" />
+                ))}
 
-            {/* Occasional lightning flash overlay */}
-            <div
-                className="fixed inset-0 bg-yellow-500/5 pointer-events-none lightning-flash"
-                style={{ zIndex: 1 }}
-            />
-        </div>
-    );
+                {/* Occasional lightning flash overlay */}
+                <div
+                    className="fixed inset-0 bg-yellow-500/5 pointer-events-none lightning-flash"
+                    style={{ zIndex: 1 }}
+                />
+            </div>
+        );
+    }
+
+    if (theme === "zootopia") {
+        return (
+            <div className="urban-glow" aria-hidden="true">
+                <div className="city-orb" />
+                <div className="city-orb" />
+            </div>
+        );
+    }
+
+    if (theme === "avatar") {
+        return (
+            <div className="bioluminescent-glow" aria-hidden="true">
+                <div className="glow-orb" />
+                <div className="glow-orb" />
+                <div className="glow-orb" />
+            </div>
+        );
+    }
+
+    return null;
 }
